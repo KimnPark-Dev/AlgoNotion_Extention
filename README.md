@@ -117,9 +117,6 @@ extension/
 
 > 버튼 없이 자동 업로드는 현재 미지원 — 수동 버튼 클릭 필요
 
-## 관련 레포
-
-- [AlgoNotion](https://github.com/AutoSseug/AlgoNotion) — 백엔드 서버
 
 ## 기여
 
