@@ -6,6 +6,7 @@ import { buildWebhookPayload } from '../scripts/payload_builder.js';
 const BACKEND_URL = 'http://43.201.46.22:8000';
 const NOTION_TOKEN_KEY = 'algonotion_notion_token';
 const NOTION_DATABASE_ID_KEY = 'algonotion_notion_database_id';
+const USER_NAME_KEY = 'algonotion_user_name';
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   switch (message?.type) {
@@ -50,6 +51,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             memory: payload.memory,
             notionToken: notionSettings.notionToken,
             notionDatabaseId: notionSettings.notionDatabaseId,
+            userName: notionSettings.userName,
           });
 
           // 4) 백엔드 웹훅 전송
@@ -75,9 +77,10 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 });
 
 async function getNotionSettings() {
-  const st = await chrome.storage.local.get([NOTION_TOKEN_KEY, NOTION_DATABASE_ID_KEY]);
+  const st = await chrome.storage.local.get([NOTION_TOKEN_KEY, NOTION_DATABASE_ID_KEY, USER_NAME_KEY]);
   return {
     notionToken: (st[NOTION_TOKEN_KEY] || '').trim(),
     notionDatabaseId: (st[NOTION_DATABASE_ID_KEY] || '').trim(),
+    userName: (st[USER_NAME_KEY] || '').trim(),
   };
 }

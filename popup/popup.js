@@ -1,6 +1,13 @@
 const NOTION_TOKEN_KEY = 'algonotion_notion_token';
 const NOTION_DATABASE_ID_KEY = 'algonotion_notion_database_id';
+const USER_NAME_KEY = 'algonotion_user_name';
 
+// 팝업이 닫혀도 입력 중인 값을 유지하기 위한 임시 저장 키
+const DRAFT_TOKEN_KEY = 'algonotion_draft_token';
+const DRAFT_DB_URL_KEY = 'algonotion_draft_db_url';
+const DRAFT_USER_NAME_KEY = 'algonotion_draft_user_name';
+
+const userNameInput = document.getElementById('user-name');
 const tokenInput = document.getElementById('notion-token');
 const dbUrlInput = document.getElementById('notion-db-url');
 const saveBtn = document.getElementById('save-btn');
@@ -49,20 +56,39 @@ function showStatus(message, type = 'normal') {
   }
 }
 
-// 저장된 값 불러오기
-chrome.storage.local.get([NOTION_TOKEN_KEY, NOTION_DATABASE_ID_KEY], (result) => {
-  if (result[NOTION_TOKEN_KEY]) {
-    tokenInput.value = result[NOTION_TOKEN_KEY];
-  }
-  if (result[NOTION_DATABASE_ID_KEY]) {
-    // 저장된 ID를 URL 입력란에 표시
+// 팝업 열릴 때: 확정 저장값 → 없으면 임시 저장값 순으로 복원
+const allKeys = [NOTION_TOKEN_KEY, NOTION_DATABASE_ID_KEY, USER_NAME_KEY, DRAFT_TOKEN_KEY, DRAFT_DB_URL_KEY, DRAFT_USER_NAME_KEY];
+chrome.storage.local.get(allKeys, (result) => {
+  userNameInput.value = result[USER_NAME_KEY] || result[DRAFT_USER_NAME_KEY] || '';
+  tokenInput.value = result[NOTION_TOKEN_KEY] || result[DRAFT_TOKEN_KEY] || '';
+
+  if (result[DRAFT_DB_URL_KEY]) {
+    dbUrlInput.value = result[DRAFT_DB_URL_KEY];
+  } else if (result[NOTION_DATABASE_ID_KEY]) {
     dbUrlInput.placeholder = `저장됨: ${result[NOTION_DATABASE_ID_KEY].slice(0, 8)}...`;
   }
 });
 
+// 입력할 때마다 임시 저장 (팝업이 닫혀도 유지)
+userNameInput.addEventListener('input', () => {
+  chrome.storage.local.set({ [DRAFT_USER_NAME_KEY]: userNameInput.value });
+});
+tokenInput.addEventListener('input', () => {
+  chrome.storage.local.set({ [DRAFT_TOKEN_KEY]: tokenInput.value });
+});
+dbUrlInput.addEventListener('input', () => {
+  chrome.storage.local.set({ [DRAFT_DB_URL_KEY]: dbUrlInput.value });
+});
+
 saveBtn.addEventListener('click', () => {
+  const userName = userNameInput.value.trim();
   const token = tokenInput.value.trim();
   const dbInput = dbUrlInput.value.trim();
+
+  if (!userName) {
+    showStatus('사용자 이름을 입력해주세요.', 'error');
+    return;
+  }
 
   if (!token) {
     showStatus('Notion Token을 입력해주세요.', 'error');
@@ -80,9 +106,11 @@ saveBtn.addEventListener('click', () => {
     return;
   }
 
+  // 확정 저장 후 임시 저장값 삭제
   chrome.storage.local.set(
-    { [NOTION_TOKEN_KEY]: token, [NOTION_DATABASE_ID_KEY]: databaseId },
+    { [USER_NAME_KEY]: userName, [NOTION_TOKEN_KEY]: token, [NOTION_DATABASE_ID_KEY]: databaseId },
     () => {
+      chrome.storage.local.remove([DRAFT_USER_NAME_KEY, DRAFT_TOKEN_KEY, DRAFT_DB_URL_KEY]);
       dbUrlInput.value = '';
       dbUrlInput.placeholder = `저장됨: ${databaseId.slice(0, 8)}...`;
       showStatus('저장되었습니다.', 'success');

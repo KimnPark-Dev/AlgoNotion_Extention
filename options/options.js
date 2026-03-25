@@ -1,6 +1,8 @@
 const NOTION_TOKEN_KEY = 'algonotion_notion_token';
 const NOTION_DATABASE_ID_KEY = 'algonotion_notion_database_id';
+const USER_NAME_KEY = 'algonotion_user_name';
 
+const userNameInput = document.getElementById('user-name');
 const notionTokenInput = document.getElementById('notion-token');
 const notionDatabaseIdInput = document.getElementById('notion-database-id');
 const saveButton = document.getElementById('save-button');
@@ -16,8 +18,11 @@ function showStatus(message) {
 
 function restoreOptions() {
   chrome.storage.local.get(
-    [NOTION_TOKEN_KEY, NOTION_DATABASE_ID_KEY],
+    [NOTION_TOKEN_KEY, NOTION_DATABASE_ID_KEY, USER_NAME_KEY],
     (result) => {
+      if (userNameInput && typeof result[USER_NAME_KEY] === 'string') {
+        userNameInput.value = result[USER_NAME_KEY];
+      }
       if (notionTokenInput && typeof result[NOTION_TOKEN_KEY] === 'string') {
         notionTokenInput.value = result[NOTION_TOKEN_KEY];
       }
@@ -29,11 +34,13 @@ function restoreOptions() {
 }
 
 function saveOptions() {
+  const userName = userNameInput ? userNameInput.value.trim() : '';
   const notionToken = notionTokenInput ? notionTokenInput.value.trim() : '';
   const notionDatabaseId = notionDatabaseIdInput ? notionDatabaseIdInput.value.trim() : '';
 
   chrome.storage.local.set(
     {
+      [USER_NAME_KEY]: userName,
       [NOTION_TOKEN_KEY]: notionToken,
       [NOTION_DATABASE_ID_KEY]: notionDatabaseId,
     },

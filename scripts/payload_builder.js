@@ -23,6 +23,7 @@ export function buildWebhookPayload({
   memory = null,
   notionToken = '',
   notionDatabaseId = '',
+  userName = '',
 }) {
   const link = `https://www.acmicpc.net/problem/${problemId}`;
   const tierName = typeof level === 'number' ? levelToTierName(level) : level;
@@ -44,6 +45,7 @@ export function buildWebhookPayload({
     notion_settings: {
       token: notionToken,
       database_id: notionDatabaseId,
+      user_name: userName,
     },
   };
 }

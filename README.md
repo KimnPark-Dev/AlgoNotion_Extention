@@ -2,6 +2,78 @@
 
 백준(BOJ)에서 맞았습니다!! 뜨면 자동으로 코드를 수집해 Notion 데이터베이스에 저장하는 Chrome 확장입니다.
 
+## 초기 설정 방법
+
+확장 아이콘을 클릭하면 아래와 같은 설정 팝업이 열립니다.
+
+![AlgoNotion 설정 팝업](manual/Popup.png)
+
+---
+
+### 1. Notion Integration Token 발급
+
+**① Notion에서 저장할 데이터베이스 페이지를 열고 우측 상단 `...` 버튼 클릭**
+
+![1단계](manual/HowToGetNtn_token_1.png)
+
+**② `연결` 메뉴 클릭**
+
+![2단계](manual/HowToGetNtn_token_2.png)
+
+**③ `연결 관리` 클릭**
+
+![3단계](manual/HowToGetNtn_token_3.png)
+
+**④ `API 연결 개발 또는 관리` 클릭 → Notion 개발자 페이지로 이동**
+
+![4단계](manual/HowToGetNtn_token_4.png)
+
+**⑤ `내부 API 통합` → `새 API 통합 만들기` 클릭**
+
+![5단계](manual/HowToGetNtn_token_5.png)
+
+**⑥ 이름 입력 후 AlgoNotion이 있는 워크스페이스 선택 → `생성하기` 클릭**
+
+![6단계](manual/HowToGetNtn_token_6.png)
+
+**⑦ `콘텐츠 사용 권한` 탭 → `편집 권한` 클릭**
+
+![7단계](manual/HowToGetNtn_token_7.png)
+
+**⑧ Algorithm Note 데이터베이스 선택 후 `저장하기` 클릭**
+
+![8단계](manual/HowToGetNtn_token_8.png)
+
+**⑨ `구성` 탭 → `프라이빗 API 통합 시크릿` 복사**
+
+![9단계](manual/HowToGetNtn_token_9.png)
+
+**⑩ 팝업의 `Notion Integration Token` 입력란에 붙여넣기**
+
+![10단계](manual/HowToGetNtn_token_10.png)
+
+---
+
+### 2. Notion Database 링크 가져오기
+
+**① Notion에서 저장할 데이터베이스 페이지 열기**
+
+![DB 1단계](manual/HowToGetDB_url_1.png)
+
+**② 사이드바에서 데이터베이스에 마우스 오버 후 `...` 클릭**
+
+![DB 2단계](manual/HowToGetDB_url_2.png)
+
+**③ `링크 복사` 클릭**
+
+![DB 3단계](manual/HowToGetDB_url_3.png)
+
+**④ 팝업의 `Notion Database 링크` 입력란에 붙여넣기 → `저장`**
+
+![DB 4단계](manual/HowToGetDB_url_4.png)
+
+---
+
 ## 동작 방식
 
 1. 백준 채점 현황 페이지(`/status`)를 폴링하며 **맞았습니다!!** 행을 감지
@@ -35,16 +107,6 @@ extension/
 2. Chrome 주소창에 `chrome://extensions` 입력
 3. **개발자 모드** 활성화
 4. **압축해제된 확장 프로그램을 로드합니다** 클릭 → `extension/` 폴더 선택
-
-## 초기 설정
-
-확장 아이콘 우클릭 → **옵션** 에서 아래 3가지 입력 후 저장
-
-| 항목 | 설명 |
-|------|------|
-| 백엔드 URL | 백엔드 서버 주소 (예: `http://43.201.46.22:8000`) |
-| Notion Integration Token | 본인 Notion 워크스페이스의 `secret_xxx` |
-| Notion Database ID | 저장 대상 데이터베이스의 32자리 ID |
 
 ## 사용법
 
