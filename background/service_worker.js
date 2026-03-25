@@ -1,0 +1,83 @@
+// Content script로부터 전달되는 메시지 수신 → 소스 확인 후 solved.ac 보강 → 웹훅 전송
+import { fetchSolvedAcProblem, postToBackendWebhook } from '../scripts/api_client.js';
+import { normalizeLanguage } from '../scripts/language_normalizer.js';
+import { buildWebhookPayload } from '../scripts/payload_builder.js';
+
+const BACKEND_URL = 'http://43.201.46.22:8000';
+const NOTION_TOKEN_KEY = 'algonotion_notion_token';
+const NOTION_DATABASE_ID_KEY = 'algonotion_notion_database_id';
+
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  switch (message?.type) {
+    case 'BAEKJOON_AC_SUBMISSION': {
+      const payload = message.payload || {};
+
+      if (!payload.code) {
+        sendResponse({ ok: false, stage: 'validation', error: 'payload has no code' });
+        return false;
+      }
+
+      (async () => {
+        try {
+          // 1) solved.ac에서 문제 제목·티어 조회
+          let titleKo = '';
+          let level = null;
+          try {
+            const solved = await fetchSolvedAcProblem(payload.problemId);
+            titleKo = solved.titleKo;
+            level = solved.level;
+          } catch (e) {
+            console.warn('[AlgoNotion] solved.ac 실패 (계속 진행):', e.message);
+          }
+
+          // 2) 언어 정규화
+          const language = normalizeLanguage(payload.language);
+
+          const notionSettings = await getNotionSettings();
+          if (!notionSettings.notionToken || !notionSettings.notionDatabaseId) {
+            throw new Error('Notion settings are missing. Configure token and database ID in the extension options.');
+          }
+
+          // 3) WebhookPayload 조립
+          const webhookPayload = buildWebhookPayload({
+            platform: 'baekjoon',
+            problemId: payload.problemId,
+            title: titleKo,
+            level,
+            language,
+            code: payload.code,
+            time: payload.time,
+            memory: payload.memory,
+            notionToken: notionSettings.notionToken,
+            notionDatabaseId: notionSettings.notionDatabaseId,
+          });
+
+          // 4) 백엔드 웹훅 전송
+          await postToBackendWebhook(BACKEND_URL, webhookPayload);
+          console.log('[AlgoNotion] 업로드 완료:', payload.problemId, payload.submissionId);
+          sendResponse({ ok: true });
+        } catch (err) {
+          console.error('[AlgoNotion] 업로드 실패:', err.message);
+          sendResponse({
+            ok: false,
+            stage: 'background',
+            error: err?.message || String(err),
+          });
+        }
+      })();
+
+      return true;
+    }
+    default:
+      break;
+  }
+  return false;
+});
+
+async function getNotionSettings() {
+  const st = await chrome.storage.local.get([NOTION_TOKEN_KEY, NOTION_DATABASE_ID_KEY]);
+  return {
+    notionToken: (st[NOTION_TOKEN_KEY] || '').trim(),
+    notionDatabaseId: (st[NOTION_DATABASE_ID_KEY] || '').trim(),
+  };
+}

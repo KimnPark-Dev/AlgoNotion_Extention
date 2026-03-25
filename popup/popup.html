@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <title>AlgoNotion</title>
+    <style>
+      body {
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        width: 320px;
+        padding: 16px;
+        margin: 0;
+      }
+
+      h1 {
+        font-size: 16px;
+        margin: 0 0 14px 0;
+      }
+
+      label {
+        display: block;
+        font-size: 12px;
+        font-weight: 600;
+        margin-bottom: 4px;
+        color: #333;
+      }
+
+      input {
+        width: 100%;
+        padding: 7px 9px;
+        box-sizing: border-box;
+        font-size: 13px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        margin-bottom: 10px;
+      }
+
+      input:focus {
+        outline: none;
+        border-color: #6366f1;
+      }
+
+      small {
+        display: block;
+        font-size: 11px;
+        color: #888;
+        margin-top: -8px;
+        margin-bottom: 10px;
+      }
+
+      button {
+        width: 100%;
+        padding: 8px;
+        background: #6366f1;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        font-size: 13px;
+        cursor: pointer;
+      }
+
+      button:hover {
+        background: #4f46e5;
+      }
+
+      #status {
+        margin-top: 8px;
+        font-size: 12px;
+        text-align: center;
+        min-height: 16px;
+        color: #555;
+      }
+
+      #status.error {
+        color: #dc2626;
+      }
+
+      #status.success {
+        color: #16a34a;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>AlgoNotion 설정</h1>
+
+    <label for="notion-token">Notion Integration Token</label>
+    <input id="notion-token" type="password" placeholder="secret_xxx" />
+
+    <label for="notion-db-url">Notion Database 링크</label>
+    <input id="notion-db-url" type="text" placeholder="https://www.notion.so/..." />
+    <small>링크 붙여넣으면 ID를 자동으로 추출합니다.</small>
+
+    <button id="save-btn">저장</button>
+    <div id="status"></div>
+
+    <script src="popup.js"></script>
+  </body>
+</html>
