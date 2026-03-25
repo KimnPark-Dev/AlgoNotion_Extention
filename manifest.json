@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "AlgoNotion Baekjoon Helper",
+  "name": "AlgoNotion",
   "description": "백준 채점 현황을 감시해 정답 코드를 수집하고 백엔드로 전송하는 Manifest V3 확장입니다.",
-  "version": "0.1.0",
+  "version": "1.0",
   "icons": {
     "16": "assets/icon16.png",
     "48": "assets/icon48.png",
