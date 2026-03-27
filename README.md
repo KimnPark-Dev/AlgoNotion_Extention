@@ -136,9 +136,6 @@ extension/
 3. "코드보기" 옆 **Notion 업로드** 버튼 클릭
 4. Notion 데이터베이스에 자동 저장
 
-> 버튼 없이 자동 업로드는 현재 미지원 — 수동 버튼 클릭 필요
-
-
 ## 기여
 
 [CONTRIBUTING.md](./CONTRIBUTING.md) 참고
