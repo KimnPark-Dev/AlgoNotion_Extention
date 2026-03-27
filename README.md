@@ -1,6 +1,6 @@
 # AlgoNotion Extension
 
-백준(BOJ)에서 맞았습니다!! 뜨면 자동으로 코드를 수집해 Notion 데이터베이스에 저장하는 Chrome 확장입니다.
+백준(BOJ)과 SWEA(Samsung SW Expert Academy)에서 정답 제출 시 코드를 수집해 Notion 데이터베이스에 저장하는 Chrome 확장입니다.
 
 ## 초기 설정 방법
 
@@ -76,10 +76,21 @@
 
 ## 동작 방식
 
-1. 백준 채점 현황 페이지(`/status`)를 폴링하며 **맞았습니다!!** 행을 감지
+### 백준 (Baekjoon)
+
+1. 채점 현황 페이지(`acmicpc.net/status`)를 폴링하며 **맞았습니다!!** 행을 감지
 2. 해당 제출의 소스 코드를 다운로드
 3. [solved.ac](https://solved.ac) API로 문제 제목·티어 보강
 4. 백엔드 서버(`/webhook`)로 전송 → Notion에 저장
+
+### SWEA (Samsung SW Expert Academy)
+
+1. 문제 상세 페이지(`swexpertacademy.com/main/code/problem/problemDetail.do`)를 폴링
+2. 제출 목록에서 **Pass** 결과 행의 "코드보기" 버튼 옆에 "Notion 업로드" 버튼 주입
+3. 버튼 클릭 시 `submitCodePopup.do` 페이지에서 소스코드 추출
+4. 백엔드 서버(`/webhook`)로 전송 → Notion에 저장
+
+> SWEA는 난이도·메모리·시간 정보를 제공하지 않아 해당 필드는 빈 값으로 저장됩니다.
 
 ## 폴더 구조
 
@@ -91,14 +102,15 @@ extension/
 ├── background/
 │   └── service_worker.js       # 메시지 수신 → solved.ac → 백엔드 전송
 ├── content/
-│   └── baekjoon_content.js     # 채점 현황 감지 + 업로드 버튼 주입
+│   ├── baekjoon_content.js     # 백준 채점 현황 감지 + 업로드 버튼 주입
+│   └── swea_content.js         # SWEA 제출 결과 감지 + 업로드 버튼 주입
 ├── options/
 │   ├── options.html            # 설정 페이지 UI
 │   └── options.js              # 설정 저장/불러오기
 └── scripts/
     ├── api_client.js           # solved.ac / 백엔드 API 호출
-    ├── language_normalizer.js  # 언어명 정규화
-    └── payload_builder.js      # 웹훅 페이로드 조립
+    ├── language_normalizer.js  # 언어명 정규화 (백준 + SWEA)
+    └── payload_builder.js      # 웹훅 페이로드 조립 (백준 + SWEA)
 ```
 
 ## 설치 방법
@@ -110,9 +122,18 @@ extension/
 
 ## 사용법
 
+### 백준
+
 1. 백준에서 문제 제출
 2. 채점 현황 페이지(`acmicpc.net/status`)로 이동
 3. **맞았습니다!!** 옆 **Notion 업로드** 버튼 클릭
+4. Notion 데이터베이스에 자동 저장
+
+### SWEA
+
+1. SWEA에서 문제 풀이 후 제출
+2. 문제 상세 페이지의 제출 결과 목록에서 **Pass** 행 확인
+3. "코드보기" 옆 **Notion 업로드** 버튼 클릭
 4. Notion 데이터베이스에 자동 저장
 
 > 버튼 없이 자동 업로드는 현재 미지원 — 수동 버튼 클릭 필요

@@ -1,18 +1,14 @@
 {
   "manifest_version": 3,
   "name": "AlgoNotion",
-  "description": "백준 채점 현황을 감시해 정답 코드를 수집하고 백엔드로 전송하는 Manifest V3 확장입니다.",
-  "version": "1.0",
+  "description": "Automatically sync your solved algorithm problems to Notion.",
+  "version": "2.0",
   "icons": {
-    "16": "assets/icon16.png",
-    "48": "assets/icon48.png",
     "128": "assets/icon128.png"
   },
   "action": {
     "default_popup": "popup/popup.html",
     "default_icon": {
-      "16": "assets/icon16.png",
-      "48": "assets/icon48.png",
       "128": "assets/icon128.png"
     }
   },
@@ -51,6 +47,15 @@
       ],
       "js": [
         "content/baekjoon_content.js"
+      ],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": [
+        "https://swexpertacademy.com/*"
+      ],
+      "js": [
+        "content/swea_content.js"
       ],
       "run_at": "document_idle"
     }

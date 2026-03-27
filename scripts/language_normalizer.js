@@ -35,6 +35,11 @@ const LANGUAGE_MAP = {
   'r': 'r',
   'd': 'd',
   'text': 'text',
+  // SWEA 언어 표기
+  'c (gcc-10.5)': 'c',
+  'c++14 (gcc-10.5)': 'cpp',
+  'java (openjdk 8)': 'java',
+  'python 3.7 (pypy 7.3.9)': 'python',
 };
 
 /**

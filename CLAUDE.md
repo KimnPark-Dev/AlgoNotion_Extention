@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-AlgoNotion is a Chrome extension (Manifest V3) that detects accepted submissions on Baekjoon Online Judge (백준) and uploads them to a Notion database. It enriches submissions with problem metadata from solved.ac.
+AlgoNotion is a Chrome extension (Manifest V3) that detects accepted submissions on Baekjoon Online Judge (백준) and SWEA (Samsung SW Expert Academy), then uploads them to a Notion database. Baekjoon submissions are enriched with problem metadata from solved.ac.
 
 ## Development Setup
 
@@ -21,6 +21,7 @@ To reload after changes: click the refresh icon on `chrome://extensions`.
 
 ### Data Flow
 
+**Baekjoon**
 ```
 Baekjoon status page (acmicpc.net/status)
   → content/baekjoon_content.js (DOM polling every 2s)
@@ -36,13 +37,30 @@ Baekjoon status page (acmicpc.net/status)
           → Backend calls Notion API
 ```
 
+**SWEA**
+```
+SWEA problem detail page (swexpertacademy.com/main/code/problem/problemDetail.do)
+  → content/swea_content.js (DOM polling every 2s)
+    → detects "Pass" rows in submission list
+    → injects "Notion 업로드" buttons next to "코드보기" links
+    → fetches source code from submitCodePopup.do
+      (tries: .CodeMirror-code lines → textarea.value → pre.textContent)
+    → chrome.runtime.sendMessage("SWEA_AC_SUBMISSION")
+      → background/service_worker.js
+        → scripts/language_normalizer.js (normalize SWEA language string)
+        → scripts/payload_builder.js (buildSweaWebhookPayload)
+        → scripts/api_client.js → POST to backend (http://43.201.46.22:8000/webhook)
+          → Backend calls Notion API
+```
+
 ### Module Roles
 
 - **[content/baekjoon_content.js](content/baekjoon_content.js)**: Content script. Handles all DOM interaction, button injection, source code fetching with retry logic (5 retries, exponential backoff), and deduplication via `algonotion_uploaded_ids` in `chrome.storage.local`.
-- **[background/service_worker.js](background/service_worker.js)**: Service worker. Orchestrates the upload pipeline — fetches metadata, builds payload, POSTs to backend.
+- **[content/swea_content.js](content/swea_content.js)**: Content script for SWEA. Polls for "Pass" rows, injects upload buttons, fetches source code from the code view popup (with multiple fallback strategies), and deduplicates via `algonotion_swea_uploaded_ids` in `chrome.storage.local`.
+- **[background/service_worker.js](background/service_worker.js)**: Service worker. Handles both `BAEKJOON_AC_SUBMISSION` and `SWEA_AC_SUBMISSION` messages — fetches metadata, builds payload, POSTs to backend.
 - **[scripts/api_client.js](scripts/api_client.js)**: Calls solved.ac API and backend webhook.
-- **[scripts/language_normalizer.js](scripts/language_normalizer.js)**: Maps raw Baekjoon language strings (e.g. "Python 3/수정", "C++17") to normalized keys.
-- **[scripts/payload_builder.js](scripts/payload_builder.js)**: Constructs the webhook JSON. Converts solved.ac numeric tier levels (1–30) to tier name strings (Bronze V → Ruby I).
+- **[scripts/language_normalizer.js](scripts/language_normalizer.js)**: Maps raw language strings from both Baekjoon (e.g. "Python 3/수정", "C++17") and SWEA (e.g. "JAVA (OpenJDK 8)") to normalized keys.
+- **[scripts/payload_builder.js](scripts/payload_builder.js)**: Constructs webhook JSON. `buildBaekjoonWebhookPayload` converts solved.ac tier levels (1–30) to strings (Bronze V → Ruby I). `buildSweaWebhookPayload` sets level/memory/time to null.
 - **[options/options.js](options/options.js)**: Extracts Notion Database ID from various URL formats. Saves to `chrome.storage.local`.
 
 ### Chrome Storage Keys
@@ -51,7 +69,8 @@ Baekjoon status page (acmicpc.net/status)
 |-----|---------|
 | `algonotion_notion_token` | Notion Integration secret |
 | `algonotion_notion_database_id` | Target Notion database ID |
-| `algonotion_uploaded_ids` | Array of already-uploaded submission IDs (deduplication) |
+| `algonotion_uploaded_ids` | Array of already-uploaded Baekjoon submission IDs (deduplication) |
+| `algonotion_swea_uploaded_ids` | Array of already-uploaded SWEA contestHistoryIds (deduplication) |
 
 ### Network Rules
 

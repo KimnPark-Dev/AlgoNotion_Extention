@@ -1,7 +1,7 @@
 // Content script로부터 전달되는 메시지 수신 → 소스 확인 후 solved.ac 보강 → 웹훅 전송
 import { fetchSolvedAcProblem, postToBackendWebhook } from '../scripts/api_client.js';
 import { normalizeLanguage } from '../scripts/language_normalizer.js';
-import { buildWebhookPayload } from '../scripts/payload_builder.js';
+import { buildWebhookPayload, buildSweaWebhookPayload } from '../scripts/payload_builder.js';
 
 const BACKEND_URL = 'http://43.201.46.22:8000';
 const NOTION_TOKEN_KEY = 'algonotion_notion_token';
@@ -60,6 +60,51 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
           sendResponse({ ok: true });
         } catch (err) {
           console.error('[AlgoNotion] 업로드 실패:', err.message);
+          sendResponse({
+            ok: false,
+            stage: 'background',
+            error: err?.message || String(err),
+          });
+        }
+      })();
+
+      return true;
+    }
+    case 'SWEA_AC_SUBMISSION': {
+      const payload = message.payload || {};
+
+      if (!payload.code) {
+        sendResponse({ ok: false, stage: 'validation', error: 'payload has no code' });
+        return false;
+      }
+
+      (async () => {
+        try {
+          const language = normalizeLanguage(payload.language);
+          const notionSettings = await getNotionSettings();
+          if (!notionSettings.notionToken || !notionSettings.notionDatabaseId) {
+            throw new Error('Notion settings are missing. Configure token and database ID in the extension options.');
+          }
+
+          const webhookPayload = buildSweaWebhookPayload({
+            problemId: payload.problemId,
+            contestProbId: payload.contestProbId,
+            title: payload.title,
+            level: payload.level,
+            language,
+            code: payload.code,
+            time: payload.time,
+            memory: payload.memory,
+            notionToken: notionSettings.notionToken,
+            notionDatabaseId: notionSettings.notionDatabaseId,
+            userName: notionSettings.userName,
+          });
+
+          await postToBackendWebhook(BACKEND_URL, webhookPayload);
+          console.log('[AlgoNotion] SWEA 업로드 완료:', payload.problemId);
+          sendResponse({ ok: true });
+        } catch (err) {
+          console.error('[AlgoNotion] SWEA 업로드 실패:', err.message);
           sendResponse({
             ok: false,
             stage: 'background',
