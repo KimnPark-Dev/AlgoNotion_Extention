@@ -23,8 +23,8 @@
   "host_permissions": [
     "https://www.acmicpc.net/*",
     "https://solved.ac/*",
-    "http://*/*",
-    "https://*/*"
+    "https://swexpertacademy.com/*",
+    "http://43.201.46.22:8000/*"
   ],
   "background": {
     "service_worker": "background/service_worker.js",
