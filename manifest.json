@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "AlgoNotion",
   "description": "Automatically sync your solved algorithm problems to Notion.",
-  "version": "2.0",
+  "version": "2.1",
   "icons": {
     "128": "assets/icon128.png"
   },
@@ -13,18 +13,16 @@
     }
   },
   "permissions": [
-    "activeTab",
     "declarativeNetRequest",
     "declarativeNetRequestWithHostAccess",
-    "scripting",
-    "storage",
-    "tabs"
+    "storage"
   ],
   "host_permissions": [
     "https://www.acmicpc.net/*",
     "https://solved.ac/*",
     "https://swexpertacademy.com/*",
-    "http://43.201.46.22:8000/*"
+    "https://algonotion.site/*",
+    "https://api.notion.com/*"
   ],
   "background": {
     "service_worker": "background/service_worker.js",

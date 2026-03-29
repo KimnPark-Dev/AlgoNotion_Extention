@@ -21,9 +21,6 @@ export function buildWebhookPayload({
   code,
   time = null,
   memory = null,
-  notionToken = '',
-  notionDatabaseId = '',
-  userName = '',
 }) {
   const link = `https://www.acmicpc.net/problem/${problemId}`;
   const tierName = typeof level === 'number' ? levelToTierName(level) : level;
@@ -42,11 +39,6 @@ export function buildWebhookPayload({
       memory: memory != null ? Number(memory) : null,
       time: time != null ? Number(time) : null,
     },
-    notion_settings: {
-      token: notionToken,
-      database_id: notionDatabaseId,
-      user_name: userName,
-    },
   };
 }
 
@@ -59,9 +51,6 @@ export function buildSweaWebhookPayload({
   code,
   time = null,
   memory = null,
-  notionToken = '',
-  notionDatabaseId = '',
-  userName = '',
 }) {
   const link = contestProbId
     ? `https://swexpertacademy.com/main/code/problem/problemDetail.do?contestProbId=${contestProbId}`
@@ -80,11 +69,6 @@ export function buildSweaWebhookPayload({
       code,
       memory: memory != null ? Number(memory) : null,
       time: time != null ? Number(time) : null,
-    },
-    notion_settings: {
-      token: notionToken,
-      database_id: notionDatabaseId,
-      user_name: userName,
     },
   };
 }

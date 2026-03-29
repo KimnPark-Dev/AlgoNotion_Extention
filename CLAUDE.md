@@ -32,9 +32,9 @@ Baekjoon status page (acmicpc.net/status)
       → background/service_worker.js
         → solved.ac API (problem title + tier)
         → scripts/language_normalizer.js (normalize language string)
-        → scripts/payload_builder.js (build webhook JSON)
-        → scripts/api_client.js → POST to backend (http://43.201.46.22:8000/webhook)
-          → Backend calls Notion API
+        → scripts/payload_builder.js (build analyze JSON)
+        → scripts/api_client.js → POST to backend (https://algonotion.site/analyze)
+          → scripts/notion_client.js → POST to Notion API (api.notion.com/v1/pages)
 ```
 
 **SWEA**
@@ -49,26 +49,28 @@ SWEA problem detail page (swexpertacademy.com/main/code/problem/problemDetail.do
       → background/service_worker.js
         → scripts/language_normalizer.js (normalize SWEA language string)
         → scripts/payload_builder.js (buildSweaWebhookPayload)
-        → scripts/api_client.js → POST to backend (http://43.201.46.22:8000/webhook)
-          → Backend calls Notion API
+        → scripts/api_client.js → POST to backend (https://algonotion.site/analyze)
+          → scripts/notion_client.js → POST to Notion API (api.notion.com/v1/pages)
 ```
 
 ### Module Roles
 
 - **[content/baekjoon_content.js](content/baekjoon_content.js)**: Content script. Handles all DOM interaction, button injection, source code fetching with retry logic (5 retries, exponential backoff), and deduplication via `algonotion_uploaded_ids` in `chrome.storage.local`.
 - **[content/swea_content.js](content/swea_content.js)**: Content script for SWEA. Polls for "Pass" rows, injects upload buttons, fetches source code from the code view popup (with multiple fallback strategies), and deduplicates via `algonotion_swea_uploaded_ids` in `chrome.storage.local`.
-- **[background/service_worker.js](background/service_worker.js)**: Service worker. Handles both `BAEKJOON_AC_SUBMISSION` and `SWEA_AC_SUBMISSION` messages — fetches metadata, builds payload, POSTs to backend.
-- **[scripts/api_client.js](scripts/api_client.js)**: Calls solved.ac API and backend webhook.
+- **[background/service_worker.js](background/service_worker.js)**: Service worker. Handles both `BAEKJOON_AC_SUBMISSION` and `SWEA_AC_SUBMISSION` messages — fetches metadata, calls `/analyze`, then saves to Notion directly.
+- **[scripts/api_client.js](scripts/api_client.js)**: Calls solved.ac API (`fetchSolvedAcProblem`) and backend `/analyze` endpoint (`postToAnalyze`).
+- **[scripts/notion_client.js](scripts/notion_client.js)**: Calls Notion API directly (`postToNotionPage`). Builds page properties and children blocks from the analyze response. Handles rich_text 2000-char chunking for code blocks.
 - **[scripts/language_normalizer.js](scripts/language_normalizer.js)**: Maps raw language strings from both Baekjoon (e.g. "Python 3/수정", "C++17") and SWEA (e.g. "JAVA (OpenJDK 8)") to normalized keys.
-- **[scripts/payload_builder.js](scripts/payload_builder.js)**: Constructs webhook JSON. `buildBaekjoonWebhookPayload` converts solved.ac tier levels (1–30) to strings (Bronze V → Ruby I). `buildSweaWebhookPayload` sets level/memory/time to null.
+- **[scripts/payload_builder.js](scripts/payload_builder.js)**: Constructs `/analyze` request JSON. `buildWebhookPayload` converts solved.ac tier levels (1–30) to strings (Bronze V → Ruby I). `buildSweaWebhookPayload` sets level/memory/time to null.
 - **[options/options.js](options/options.js)**: Extracts Notion Database ID from various URL formats. Saves to `chrome.storage.local`.
 
 ### Chrome Storage Keys
 
 | Key | Purpose |
 |-----|---------|
-| `algonotion_notion_token` | Notion Integration secret |
+| `algonotion_notion_token` | Notion Integration secret (used by notion_client.js directly) |
 | `algonotion_notion_database_id` | Target Notion database ID |
+| `algonotion_user_name` | User display name written to the `유저` select property |
 | `algonotion_uploaded_ids` | Array of already-uploaded Baekjoon submission IDs (deduplication) |
 | `algonotion_swea_uploaded_ids` | Array of already-uploaded SWEA contestHistoryIds (deduplication) |
 
