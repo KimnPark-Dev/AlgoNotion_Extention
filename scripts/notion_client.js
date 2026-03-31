@@ -80,6 +80,12 @@ export async function postToNotionPage({ token, databaseId, userName, payload, a
     properties['유저'] = { select: { name: userName } };
   }
 
+  if (Array.isArray(analysis.tags) && analysis.tags.length > 0) {
+    properties['유형'] = {
+      multi_select: analysis.tags.map(tag => ({ name: tag })),
+    };
+  }
+
   const children = [
     heading2('🤖 AI 코드 리뷰'),
     heading3('💡 접근 방식'),      paragraph(analysis.approach),          divider(),
@@ -87,7 +93,6 @@ export async function postToNotionPage({ token, databaseId, userName, payload, a
     heading3('📦 공간 복잡도'),    paragraph(analysis.space_complexity),  divider(),
     heading3('🔧 개선 사항'),      paragraph(analysis.improvement),       divider(),
     heading3('🎯 다음 추천 문제'), paragraph(analysis.next_problem),      divider(),
-    heading3('🏷️ 문제 유형'),     paragraph(analysis.tags.join(', ')),   divider(),
     heading2('제출 코드와 모범 답안'),
     codeBlock(submission_info.code,  meta_info.language),
     codeBlock(analysis.better_code,  meta_info.language),

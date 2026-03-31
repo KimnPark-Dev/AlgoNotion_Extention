@@ -70,23 +70,66 @@
         color: #555;
       }
 
-      #status.error {
-        color: #dc2626;
+      #status.error   { color: #dc2626; }
+      #status.success { color: #16a34a; }
+
+      /* Notion 연결 영역 */
+      .notion-connect-area {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 8px 10px;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        background: #fafafa;
+        margin-bottom: 12px;
       }
 
-      #status.success {
-        color: #16a34a;
+      #notion-status-label {
+        font-size: 12px;
+        color: #555;
       }
+
+      #notion-status-label.connected {
+        color: #16a34a;
+        font-weight: 600;
+      }
+
+      #btn-notion-connect {
+        width: auto;
+        padding: 5px 10px;
+        font-size: 12px;
+        background: #000;
+        border-radius: 4px;
+      }
+
+      #btn-notion-connect:hover { background: #333; }
+
+      #btn-notion-disconnect {
+        width: auto;
+        padding: 5px 10px;
+        font-size: 12px;
+        background: #fff;
+        color: #c62828;
+        border: 1px solid #c62828;
+        border-radius: 4px;
+      }
+
+      #btn-notion-disconnect:hover { background: #fff0f0; }
     </style>
   </head>
   <body>
     <h1>AlgoNotion 설정</h1>
 
+    <!-- Notion 연결 상태 -->
+    <div class="notion-connect-area">
+      <span id="notion-status-label">연결되지 않음</span>
+      <button id="btn-notion-connect" type="button">Notion 연결</button>
+      <button id="btn-notion-disconnect" type="button" style="display:none;">연결 해제</button>
+    </div>
+
     <label for="user-name">사용자 이름</label>
     <input id="user-name" type="text" placeholder="user-name" />
-
-    <label for="notion-token">Notion Integration Token</label>
-    <input id="notion-token" type="password" placeholder="secret_xxx" />
 
     <label for="notion-db-url">Notion Database 링크</label>
     <input id="notion-db-url" type="text" placeholder="https://www.notion.so/..." />
@@ -95,6 +138,6 @@
     <button id="save-btn">저장</button>
     <div id="status"></div>
 
-    <script src="popup.js"></script>
+    <script type="module" src="popup.js"></script>
   </body>
 </html>
