@@ -97,6 +97,11 @@ btnConnect.addEventListener('click', async () => {
   }
 });
 
+// 템플릿 가져오기
+document.getElementById('btn-template').addEventListener('click', () => {
+  chrome.tabs.create({ url: 'https://www.notion.so/marketplace/templates/a-253?cr=pro%3Ashongki' });
+});
+
 // 연결 해제
 btnDisconnect.addEventListener('click', async () => {
   await disconnectNotion();

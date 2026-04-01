@@ -105,6 +105,17 @@ extension/
 3. "코드보기" 옆 **Notion 업로드** 버튼 클릭
 4. Notion 데이터베이스에 자동 저장
 
+## 업데이트 이력
+
+### v2.3
+- 팝업에 **Notion 템플릿 가져오기** 버튼 추가 — 클릭 시 Notion 마켓플레이스 템플릿 페이지로 이동
+
+### v2.2
+- Notion OAuth 연결/해제 기능 추가 (Integration 토큰 없이 워크스페이스 직접 연결)
+
+### v2.1
+- 백엔드 `/analyze` 엔드포인트로 전환 및 Notion API 직접 호출 방식으로 리팩토링
+
 ## 기여
 
 [CONTRIBUTING.md](./CONTRIBUTING.md) 참고
