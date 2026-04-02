@@ -1,5 +1,25 @@
 import { startNotionOAuth, disconnectNotion, getNotionToken } from '../scripts/oauth.js';
 
+function extractDatabaseId(input) {
+  const trimmed = input.trim();
+  const rawId = trimmed.replace(/-/g, '');
+  if (/^[0-9a-f]{32}$/i.test(rawId)) return rawId;
+
+  try {
+    const url = new URL(trimmed);
+    const segments = url.pathname.split('/').filter(Boolean);
+    for (let i = segments.length - 1; i >= 0; i--) {
+      const match = segments[i].replace(/-/g, '').match(/[0-9a-f]{32}/i);
+      if (match) return match[0];
+    }
+  } catch {
+    const match = trimmed.replace(/-/g, '').match(/[0-9a-f]{32}/i);
+    if (match) return match[0];
+  }
+
+  return null;
+}
+
 const NOTION_DATABASE_ID_KEY = 'algonotion_notion_database_id';
 const USER_NAME_KEY = 'algonotion_user_name';
 
@@ -49,11 +69,17 @@ async function restoreOptions() {
 
 async function saveOptions() {
   const userName = userNameInput ? userNameInput.value.trim() : '';
-  const notionDatabaseId = notionDatabaseIdInput ? notionDatabaseIdInput.value.trim() : '';
+  const dbInput = notionDatabaseIdInput ? notionDatabaseIdInput.value.trim() : '';
+
+  const notionDatabaseId = extractDatabaseId(dbInput);
+  if (dbInput && !notionDatabaseId) {
+    showStatus('올바른 Notion 링크 또는 ID를 입력해주세요.');
+    return;
+  }
 
   await chrome.storage.local.set({
     [USER_NAME_KEY]: userName,
-    [NOTION_DATABASE_ID_KEY]: notionDatabaseId,
+    [NOTION_DATABASE_ID_KEY]: notionDatabaseId ?? '',
   });
 
   showStatus('설정이 저장되었습니다.');
@@ -87,6 +113,13 @@ if (btnDisconnect) {
 
 if (saveButton) {
   saveButton.addEventListener('click', saveOptions);
+}
+
+const btnTemplate = document.getElementById('btn-template');
+if (btnTemplate) {
+  btnTemplate.addEventListener('click', () => {
+    chrome.tabs.create({ url: 'https://www.notion.so/marketplace/templates/a-253?cr=pro%3Ashongki' });
+  });
 }
 
 if (document.readyState === 'loading') {
