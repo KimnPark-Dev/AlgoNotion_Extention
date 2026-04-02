@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "AlgoNotion",
   "description": "Automatically sync your solved algorithm problems to Notion.",
-  "version": "2.3",
+  "version": "2.3.1",
   "icons": {
     "128": "assets/icon128.png"
   },
