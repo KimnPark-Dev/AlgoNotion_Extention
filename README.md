@@ -13,31 +13,21 @@
 팝업 상단의 **Notion 연결** 버튼을 클릭하면 Notion 인증 화면이 열립니다.  
 워크스페이스를 선택하고 **접근 허용**을 클릭하면 자동으로 연결됩니다.
 
+> 첫 연결 직후에는 데이터베이스 목록이 나타나기까지 수 초가 걸릴 수 있습니다.  
+> 목록이 비어 있다면 **↻ 새로고침** 버튼을 눌러주세요.
+
 ---
 
-### 2. Notion Database 링크 가져오기
+### 2. 데이터베이스 선택
 
-**① Notion에서 저장할 데이터베이스 페이지 열기**
-
-![DB 1단계](manual/HowToGetDB_url_1.png)
-
-**② 사이드바에서 데이터베이스에 마우스 오버 후 `...` 클릭**
-
-![DB 2단계](manual/HowToGetDB_url_2.png)
-
-**③ `링크 복사` 클릭**
-
-![DB 3단계](manual/HowToGetDB_url_3.png)
-
-**④ 팝업의 `Notion Database 링크` 입력란에 붙여넣기 → `저장`**
-
-![DB 4단계](manual/HowToGetDB_url_4.png)
+Notion 연결이 완료되면 접근 가능한 데이터베이스 목록이 드롭다운으로 자동 표시됩니다.  
+저장할 데이터베이스를 선택하세요.
 
 ---
 
 ### 3. 사용자 이름 입력
 
-팝업의 `사용자 이름` 입력란에 Notion에 기록될 이름을 입력하고 **저장**을 클릭합니다.
+`사용자 이름` 입력란에 Notion에 기록될 이름을 입력하고 **저장**을 클릭합니다.
 
 ---
 
@@ -74,11 +64,14 @@ extension/
 ├── options/
 │   ├── options.html            # 설정 페이지 UI
 │   └── options.js              # 설정 저장/불러오기
+├── popup/
+│   ├── popup.html              # 팝업 UI
+│   └── popup.js                # 팝업 동작
 └── scripts/
     ├── api_client.js           # solved.ac / 백엔드 API 호출
     ├── language_normalizer.js  # 언어명 정규화 (백준 + SWEA)
     ├── notion_client.js        # Notion API 직접 호출 (페이지 생성)
-    ├── oauth.js                # Notion OAuth 흐름 (연결/해제/토큰 조회)
+    ├── oauth.js                # Notion OAuth 흐름 (연결/해제/토큰 조회/DB 목록 조회)
     └── payload_builder.js      # /analyze 페이로드 조립 (백준 + SWEA)
 ```
 
@@ -107,8 +100,18 @@ extension/
 
 ## 업데이트 이력
 
+### v2.4
+- **DB 드롭다운 추가** — Notion 연결 후 접근 가능한 데이터베이스 목록을 자동으로 불러와 드롭다운으로 선택 가능
+- **UI 전면 리디자인** — 흰 배경 + 퍼플(`#7c3aed`) 포인트 컬러로 아이콘 브랜드와 통일
+- Database ID 직접 입력 필드 제거 (드롭다운으로 대체)
+- Notion 템플릿 가져오기 버튼 제거
+- 연결 직후 데이터베이스 목록 로딩 안내 문구 추가
+
+### v2.3.1
+- 설정 페이지에서 Notion DB 링크 자동 추출 기능 개선
+
 ### v2.3
-- 팝업에 **Notion 템플릿 가져오기** 버튼 추가 — 클릭 시 Notion 마켓플레이스 템플릿 페이지로 이동
+- 팝업에 **Notion 템플릿 가져오기** 버튼 추가
 
 ### v2.2
 - Notion OAuth 연결/해제 기능 추가 (Integration 토큰 없이 워크스페이스 직접 연결)
