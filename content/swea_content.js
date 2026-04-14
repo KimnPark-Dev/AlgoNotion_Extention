@@ -83,6 +83,14 @@ function getProblemInfoFromPage() {
   return { problemId: '', title: document.title || '' };
 }
 
+/**
+ * 문제 페이지의 난이도 배지(D1~D6, B형 등)를 추출한다.
+ * e.g. span.badge 텍스트 → "D3"
+ */
+function getLevelFromPage() {
+  return document.querySelector('div.problem_box > p.problem_title > span.badge')?.textContent?.trim() || null;
+}
+
 // ─── pop_code parsing ─────────────────────────────────────────────────────────
 
 /**
@@ -100,6 +108,97 @@ function parsePopCode(onclickStr) {
     contestHistoryId: match[2],
     submitIndex: match[3],
   };
+}
+
+// ─── Boilerplate stripping ────────────────────────────────────────────────────
+
+/**
+ * SWEA 기본 제공 주석 블록을 제거한다.
+ * - Python: '''...''' 삼중따옴표 블록 + #import sys / #sys.stdin 라인
+ * - Java/C++: /* ... *\/ 블록 주석 + //freopen / //System.setIn 라인
+ */
+function stripSweaBoilerplate(code, language) {
+  const lang = (language || '').toLowerCase();
+  if (lang.includes('python')) return _stripPython(code);
+  if (lang.includes('java')) return _stripBlockComment(code);
+  if (lang.includes('c++') || lang.includes('cpp') || /^c\b/.test(lang)) return _stripBlockComment(code);
+  return code;
+}
+
+function _stripPython(code) {
+  // 1) SWEA 키워드를 포함한 '''...''' 블록 제거
+  //    - 입출력 예제 블록: "정수형 변수", "입력 받는 예제", "출력하는 예제" 등
+  //    - input.txt 안내 블록, 알고리즘 구현 안내 블록
+  let result = code.replace(/'''[\s\S]*?'''/g, (m) =>
+    /표준 입력|표준 출력|input\.txt|read only|sys\.stdin|정수형 변수|실수형 변수|문자열 변수|입력 받는 예제|출력하는 예제|알고리즘 구현/.test(m) ? '' : m
+  );
+
+  // 2) # ///.../// 구분선 제거 (Python은 # 뒤에 / 연속)
+  result = result.replace(/^#\s*\/{10,}\s*$/gm, '');
+
+  // 3) SWEA 전용 한 줄 주석 + 주석처리된 sys import 제거
+  result = result
+    .split('\n')
+    .filter((line) => {
+      const t = line.trim();
+      if (/^#\s*(기본 제공코드|아래 표준 입출력|표준 입력 예제|표준 출력 예제|여러개의 테스트 케이스가 주어지므로)/.test(t)) return false;
+      if (/^#\s*import sys$/.test(t)) return false;
+      if (/^#\s*sys\.stdin\s*=\s*open/.test(t)) return false;
+      return true;
+    })
+    .join('\n');
+
+  // 4) 연속 빈 줄 최대 1줄로 축소
+  return result.replace(/\n{3,}/g, '\n\n').trim();
+}
+
+// Java / C++ 공통 (SWEA 패턴 동일)
+function _stripBlockComment(code) {
+  let result = code;
+
+  // 1) ////.../// 구분선 제거 (20개 이상의 / 로만 이루어진 줄)
+  result = result.replace(/^\/{20,}\s*$/gm, '');
+
+  // 2) SWEA 키워드를 포함한 /* ... */ 블록 제거
+  result = result.replace(/\/\*[\s\S]*?\*\//g, (m) =>
+    /기본 제공코드|표준 입력|표준 출력|input\.txt|freopen|알고리즘 구현|테스트 케이스|표준입력|클래스명이 Solution|스캐너를 만들어/.test(m) ? '' : m
+  );
+
+  // 3) SWEA 키워드를 포함한 연속 // 주석 블록 전체 제거
+  //    (// 기본 제공코드, // 표준 입력 예제, // 표준 출력 예제 등이 포함된 블록)
+  const SWEA_BLOCK_KEYWORDS = /기본 제공코드|표준 입력 예제|표준 출력 예제/;
+  const lines = result.split('\n');
+  const output = [];
+  let i = 0;
+  while (i < lines.length) {
+    if (lines[i].trim().startsWith('//')) {
+      // 연속된 // 줄을 하나의 블록으로 수집
+      const block = [];
+      while (i < lines.length && lines[i].trim().startsWith('//')) {
+        block.push(lines[i]);
+        i++;
+      }
+      // SWEA 키워드가 없는 블록만 유지 (사용자 직접 작성 주석 보존)
+      if (!SWEA_BLOCK_KEYWORDS.test(block.join('\n'))) {
+        output.push(...block);
+      }
+    } else {
+      output.push(lines[i]);
+      i++;
+    }
+  }
+  result = output.join('\n');
+
+  // 4) 주석처리된 stdin 리다이렉트 단독 줄 제거
+  result = result.split('\n').filter((line) => {
+    const t = line.trim();
+    if (/^\/\/\s*freopen\s*\(/.test(t)) return false;
+    if (/^\/\/\s*System\.setIn/.test(t)) return false;
+    return true;
+  }).join('\n');
+
+  // 5) 연속 빈 줄 최대 1줄로 축소
+  return result.replace(/\n{3,}/g, '\n\n').trim();
 }
 
 // ─── Source code fetch ────────────────────────────────────────────────────────
@@ -209,7 +308,8 @@ function createUploadButton(contestHistoryId, getMetaFn) {
 
     try {
       const { contestProbId, submitIndex, problemId, title, level, language } = getMetaFn();
-      const code = await fetchSweaSourceCode(contestProbId, contestHistoryId, submitIndex);
+      const rawCode = await fetchSweaSourceCode(contestProbId, contestHistoryId, submitIndex);
+      const code = stripSweaBoilerplate(rawCode, language);
 
       await sendSubmissionMessageAsync({
         problemId,
@@ -274,7 +374,7 @@ function pollCodeViewButtons() {
       submitIndex,
       problemId,
       title,
-      level: null,
+      level: getLevelFromPage(),
       language: getLanguageFromPage(),
     });
 
