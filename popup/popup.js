@@ -2,10 +2,8 @@ import { startNotionOAuth, disconnectNotion, getNotionToken, fetchNotionDatabase
 
 const NOTION_DATABASE_ID_KEY = 'algonotion_notion_database_id';
 const USER_NAME_KEY = 'algonotion_user_name';
-const DRAFT_USER_NAME_KEY = 'algonotion_draft_user_name';
 
 const userNameInput = document.getElementById('user-name');
-const saveBtn = document.getElementById('save-btn');
 const statusEl = document.getElementById('status');
 const btnConnect = document.getElementById('btn-notion-connect');
 const btnDisconnect = document.getElementById('btn-notion-disconnect');
@@ -90,8 +88,8 @@ async function loadDatabases() {
 }
 
 // 팝업 열릴 때 복원
-chrome.storage.local.get([USER_NAME_KEY, DRAFT_USER_NAME_KEY], async (result) => {
-  userNameInput.value = result[USER_NAME_KEY] || result[DRAFT_USER_NAME_KEY] || '';
+chrome.storage.local.get([USER_NAME_KEY], async (result) => {
+  userNameInput.value = result[USER_NAME_KEY] || '';
 
   const token = await getNotionToken();
   setConnectedUI(!!token);
@@ -99,11 +97,6 @@ chrome.storage.local.get([USER_NAME_KEY, DRAFT_USER_NAME_KEY], async (result) =>
   if (token) {
     await loadDatabases();
   }
-});
-
-// 사용자 이름 임시 저장
-userNameInput.addEventListener('input', () => {
-  chrome.storage.local.set({ [DRAFT_USER_NAME_KEY]: userNameInput.value });
 });
 
 // Notion 연결
@@ -133,26 +126,18 @@ btnDisconnect.addEventListener('click', async () => {
 // 새로고침
 btnRefreshDb.addEventListener('click', loadDatabases);
 
-// 저장
-saveBtn.addEventListener('click', () => {
-  const userName = userNameInput.value.trim();
-  const databaseId = dbSelect ? dbSelect.value : '';
-
-  if (!userName) {
-    showStatus('사용자 이름을 입력해주세요.', 'error');
-    return;
-  }
-
-  if (!databaseId) {
-    showStatus('데이터베이스를 선택해주세요.', 'error');
-    return;
-  }
+// DB 선택 시 자동 저장
+dbSelect.addEventListener('change', () => {
+  const databaseId = dbSelect.value;
+  if (!databaseId) return;
 
   chrome.storage.local.set(
-    { [USER_NAME_KEY]: userName, [NOTION_DATABASE_ID_KEY]: databaseId },
-    () => {
-      chrome.storage.local.remove([DRAFT_USER_NAME_KEY]);
-      showStatus('저장되었습니다.', 'success');
-    }
+    { [USER_NAME_KEY]: userNameInput.value.trim(), [NOTION_DATABASE_ID_KEY]: databaseId },
+    () => showStatus('저장되었습니다.', 'success')
   );
+});
+
+// 사용자 이름 포커스 벗어나면 저장
+userNameInput.addEventListener('blur', () => {
+  chrome.storage.local.set({ [USER_NAME_KEY]: userNameInput.value.trim() });
 });
