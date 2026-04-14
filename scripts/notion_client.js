@@ -36,12 +36,23 @@ function divider() {
   return { object: 'block', type: 'divider', divider: {} };
 }
 
+// 내부 언어 키 → Notion API 허용 언어값 매핑
+const NOTION_LANGUAGE_MAP = {
+  'cpp':  'c++',
+  'text': 'plain text',
+};
+
+function toNotionLanguage(lang) {
+  const l = (lang || '').toLowerCase();
+  return NOTION_LANGUAGE_MAP[l] || l || 'plain text';
+}
+
 function codeBlock(code, language) {
   return {
     object: 'block',
     type: 'code',
     code: {
-      language: (language || 'plain text').toLowerCase(),
+      language: toNotionLanguage(language),
       rich_text: chunkText(code || '').map(chunk => ({ type: 'text', text: { content: chunk } })),
     },
   };
@@ -78,6 +89,10 @@ export async function postToNotionPage({ token, databaseId, userName, payload, a
 
   if (userName) {
     properties['유저'] = { select: { name: userName } };
+  }
+
+  if (meta_info.level != null) {
+    properties['티어'] = { select: { name: String(meta_info.level) } };
   }
 
   if (Array.isArray(analysis.tags) && analysis.tags.length > 0) {
