@@ -61,3 +61,34 @@ export async function getNotionToken() {
   const token = (result[NOTION_TOKEN_KEY] || '').trim();
   return token || null;
 }
+
+/**
+ * Notion 워크스페이스에서 접근 가능한 데이터베이스 목록을 조회한다.
+ * @param {string} token - Notion access_token
+ * @returns {Promise<Array<{id: string, title: string}>>}
+ */
+export async function fetchNotionDatabases(token) {
+  const res = await fetch('https://api.notion.com/v1/search', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Notion-Version': '2022-06-28',
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      filter: { value: 'database', property: 'object' },
+      page_size: 100,
+    }),
+  });
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.message || `Notion API ${res.status}`);
+  }
+
+  const data = await res.json();
+  return data.results.map(db => ({
+    id: db.id.replace(/-/g, ''),
+    title: db.title?.[0]?.plain_text || '(제목 없음)',
+  }));
+}

@@ -4,90 +4,87 @@
     <meta charset="utf-8" />
     <title>AlgoNotion</title>
     <style>
+      *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
       body {
         font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-        width: 320px;
-        padding: 16px;
-        margin: 0;
+        width: 300px;
+        background: #fff;
+        color: #111;
       }
 
-      h1 {
-        font-size: 16px;
-        margin: 0 0 14px 0;
+      /* 헤더 */
+      .header {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 14px 16px 12px;
+        background: #fff;
+        border-bottom: 1px solid #f0f0f0;
       }
 
-      label {
-        display: block;
+      .logo {
+        width: 30px;
+        height: 30px;
+        background: #1a1a1a;
+        border-radius: 7px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
         font-size: 12px;
-        font-weight: 600;
-        margin-bottom: 4px;
-        color: #333;
+        font-weight: 800;
+        letter-spacing: -1px;
+        color: #fff;
+        text-shadow: 0 0 8px rgba(139, 92, 246, 0.95);
+        border: 1px solid rgba(139, 92, 246, 0.45);
+        flex-shrink: 0;
       }
 
-      input {
-        width: 100%;
-        padding: 7px 9px;
-        box-sizing: border-box;
-        font-size: 13px;
-        border: 1px solid #ccc;
-        border-radius: 4px;
-        margin-bottom: 10px;
+      .header-title {
+        font-size: 14px;
+        font-weight: 700;
+        color: #111;
+        letter-spacing: -0.2px;
       }
 
-      input:focus {
-        outline: none;
-        border-color: #6366f1;
+      .header-sub {
+        font-size: 10px;
+        color: #aaa;
+        margin-top: 1px;
       }
 
-      small {
-        display: block;
-        font-size: 11px;
-        color: #888;
-        margin-top: -8px;
-        margin-bottom: 10px;
+      /* 본문 */
+      .body {
+        padding: 14px 16px 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
       }
 
-      button {
-        width: 100%;
-        padding: 8px;
-        background: #6366f1;
-        color: white;
-        border: none;
-        border-radius: 4px;
-        font-size: 13px;
-        cursor: pointer;
+      /* 카드 */
+      .card {
+        background: #f8f8f8;
+        border: 1px solid #e8e8e8;
+        border-radius: 10px;
+        padding: 12px 14px;
       }
 
-      button:hover {
-        background: #4f46e5;
+      .card.connected {
+        border-color: rgba(124, 58, 237, 0.35);
+        background: #faf8ff;
       }
 
-      #status {
-        margin-top: 8px;
-        font-size: 12px;
-        text-align: center;
-        min-height: 16px;
-        color: #555;
-      }
-
-      #status.error   { color: #dc2626; }
-      #status.success { color: #16a34a; }
-
-      /* Notion 연결 영역 */
-      .notion-connect-area {
+      /* Notion 연결 행 */
+      .connect-row {
         display: flex;
         align-items: center;
         justify-content: space-between;
-        padding: 8px 10px;
-        border: 1px solid #ddd;
-        border-radius: 6px;
-        background: #fafafa;
-        margin-bottom: 12px;
+        gap: 8px;
       }
 
       #notion-status-label {
         font-size: 12px;
-        color: #555;
+        color: #888;
       }
 
       #notion-status-label.connected {
@@ -95,68 +92,214 @@
         font-weight: 600;
       }
 
-      #btn-notion-connect {
-        width: auto;
-        padding: 5px 10px;
-        font-size: 12px;
-        background: #000;
-        border-radius: 4px;
+      button { cursor: pointer; font-family: inherit; }
+
+      .btn-connect {
+        padding: 5px 12px;
+        font-size: 11px;
+        font-weight: 600;
+        background: #1a1a1a;
+        color: #fff;
+        border: none;
+        border-radius: 6px;
+        transition: background 0.15s;
       }
 
-      #btn-notion-connect:hover { background: #333; }
+      .btn-connect:hover { background: #333; }
+      .btn-connect:disabled { opacity: 0.5; cursor: not-allowed; }
 
-      #btn-notion-disconnect {
-        width: auto;
+      .btn-disconnect {
         padding: 5px 10px;
-        font-size: 12px;
+        font-size: 11px;
         background: #fff;
-        color: #c62828;
-        border: 1px solid #c62828;
-        border-radius: 4px;
+        color: #dc2626;
+        border: 1px solid #fca5a5;
+        border-radius: 6px;
+        transition: background 0.15s;
       }
 
-      #btn-notion-disconnect:hover { background: #fff0f0; }
+      .btn-disconnect:hover { background: #fff5f5; }
 
-      #btn-template {
-        width: 100%;
-        padding: 8px;
+      .divider {
+        height: 1px;
+        background: #e8e8e8;
+        margin: 10px 0;
+      }
+
+      /* DB 선택 */
+      #db-select-area { display: none; }
+
+      .db-label {
+        font-size: 11px;
+        font-weight: 600;
+        color: #888;
+        margin-bottom: 6px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+
+      .db-select-row {
+        display: flex;
+        gap: 6px;
+      }
+
+      #notion-db-select {
+        flex: 1;
+        padding: 7px 28px 7px 9px;
         background: #fff;
-        color: #333;
         border: 1px solid #ddd;
-        border-radius: 4px;
+        border-radius: 7px;
+        color: #111;
         font-size: 12px;
-        cursor: pointer;
-        margin-top: 8px;
-        text-align: center;
+        font-family: inherit;
+        appearance: none;
+        -webkit-appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23aaa'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 9px center;
+        transition: border-color 0.15s;
       }
 
-      #btn-template:hover {
-        background: #f5f5f5;
-        border-color: #bbb;
+      #notion-db-select:focus {
+        outline: none;
+        border-color: #7c3aed;
       }
+
+      #notion-db-select:disabled { opacity: 0.5; cursor: not-allowed; }
+
+      #btn-refresh-db {
+        padding: 7px 9px;
+        background: #fff;
+        border: 1px solid #ddd;
+        border-radius: 7px;
+        color: #888;
+        font-size: 13px;
+        transition: color 0.15s, border-color 0.15s;
+      }
+
+      #btn-refresh-db:hover { color: #333; border-color: #bbb; }
+      #btn-refresh-db:disabled { opacity: 0.4; cursor: not-allowed; }
+
+      .db-notice {
+        display: flex;
+        align-items: flex-start;
+        gap: 5px;
+        margin-top: 7px;
+        padding: 6px 8px;
+        background: #f3f0ff;
+        border: 1px solid #ddd6fe;
+        border-radius: 6px;
+        font-size: 11px;
+        color: #6d28d9;
+        line-height: 1.5;
+      }
+
+      .db-notice .icon { flex-shrink: 0; }
+
+      #db-select-hint {
+        display: block;
+        font-size: 11px;
+        color: #aaa;
+        margin-top: 5px;
+      }
+
+      /* 필드 */
+      .field-label {
+        font-size: 11px;
+        font-weight: 600;
+        color: #888;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 5px;
+      }
+
+      input[type="text"] {
+        width: 100%;
+        padding: 8px 10px;
+        background: #fff;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        color: #111;
+        font-size: 13px;
+        font-family: inherit;
+        transition: border-color 0.15s;
+      }
+
+      input[type="text"]::placeholder { color: #bbb; }
+
+      input[type="text"]:focus {
+        outline: none;
+        border-color: #7c3aed;
+      }
+
+      /* 저장 버튼 */
+      #save-btn {
+        width: 100%;
+        padding: 10px;
+        background: #7c3aed;
+        color: #fff;
+        border: none;
+        border-radius: 8px;
+        font-size: 13px;
+        font-weight: 600;
+        transition: background 0.15s;
+      }
+
+      #save-btn:hover { background: #6d28d9; }
+
+      #status {
+        font-size: 11px;
+        text-align: center;
+        min-height: 14px;
+        color: #aaa;
+      }
+
+      #status.error   { color: #dc2626; }
+      #status.success { color: #16a34a; }
     </style>
   </head>
   <body>
-    <h1>AlgoNotion 설정</h1>
-
-    <!-- Notion 연결 상태 -->
-    <div class="notion-connect-area">
-      <span id="notion-status-label">연결되지 않음</span>
-      <button id="btn-notion-connect" type="button">Notion 연결</button>
-      <button id="btn-notion-disconnect" type="button" style="display:none;">연결 해제</button>
+    <div class="header">
+      <div class="logo">A&gt;</div>
+      <div>
+        <div class="header-title">AlgoNotion</div>
+        <div class="header-sub">알고리즘 풀이 → Notion 자동 저장</div>
+      </div>
     </div>
 
-    <label for="user-name">사용자 이름</label>
-    <input id="user-name" type="text" placeholder="user-name" />
+    <div class="body">
+      <div class="card" id="notion-card">
+        <div class="connect-row">
+          <span id="notion-status-label">연결되지 않음</span>
+          <button id="btn-notion-connect" class="btn-connect" type="button">Notion 연결</button>
+          <button id="btn-notion-disconnect" class="btn-disconnect" type="button" style="display:none;">연결 해제</button>
+        </div>
 
-    <label for="notion-db-url">Notion Database 링크</label>
-    <input id="notion-db-url" type="text" placeholder="https://www.notion.so/..." />
-    <small>링크 붙여넣으면 ID를 자동으로 추출합니다.</small>
+        <div id="db-select-area">
+          <div class="divider"></div>
+          <div class="db-label">데이터베이스</div>
+          <div class="db-select-row">
+            <select id="notion-db-select">
+              <option value="">-- 선택하세요 --</option>
+            </select>
+            <button id="btn-refresh-db" type="button">↻</button>
+          </div>
+          <div class="db-notice">
+            <span class="icon">⏳</span>
+            <span>첫 연결 직후에는 목록이 나타나기까지 수 초가 걸릴 수 있어요.</span>
+          </div>
+          <span id="db-select-hint"></span>
+        </div>
+      </div>
 
-    <button id="save-btn">저장</button>
-    <div id="status"></div>
+      <div class="field-group">
+        <div class="field-label">사용자 이름</div>
+        <input id="user-name" type="text" placeholder="name" />
+      </div>
 
-    <button id="btn-template" type="button">📋 Notion 템플릿 가져오기</button>
+      <button id="save-btn" type="button">저장</button>
+      <div id="status"></div>
+    </div>
 
     <script type="module" src="popup.js"></script>
   </body>
