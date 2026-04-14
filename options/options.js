@@ -4,7 +4,6 @@ const NOTION_DATABASE_ID_KEY = 'algonotion_notion_database_id';
 const USER_NAME_KEY = 'algonotion_user_name';
 
 const userNameInput = document.getElementById('user-name');
-const saveButton = document.getElementById('save-button');
 const statusLabel = document.getElementById('status');
 const btnConnect = document.getElementById('btn-notion-connect');
 const btnDisconnect = document.getElementById('btn-notion-disconnect');
@@ -119,10 +118,7 @@ async function saveOptions() {
   const userName = userNameInput ? userNameInput.value.trim() : '';
   const databaseId = dbSelect ? dbSelect.value : '';
 
-  if (!databaseId) {
-    showStatus('데이터베이스를 선택해주세요.');
-    return;
-  }
+  if (!databaseId) return;
 
   await chrome.storage.local.set({
     [USER_NAME_KEY]: userName,
@@ -164,8 +160,14 @@ if (btnRefreshDb) {
   btnRefreshDb.addEventListener('click', loadDatabases);
 }
 
-if (saveButton) {
-  saveButton.addEventListener('click', saveOptions);
+// DB 선택 시 자동 저장
+if (dbSelect) {
+  dbSelect.addEventListener('change', saveOptions);
+}
+
+// 사용자 이름 입력 후 포커스 벗어나면 저장
+if (userNameInput) {
+  userNameInput.addEventListener('blur', saveOptions);
 }
 
 if (document.readyState === 'loading') {
