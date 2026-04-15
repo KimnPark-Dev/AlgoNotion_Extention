@@ -42,6 +42,34 @@ export function buildWebhookPayload({
   };
 }
 
+export function buildProgrammersWebhookPayload({
+  problemId,
+  title = '',
+  level = null,
+  language,
+  code,
+  time = null,
+  memory = null,
+}) {
+  const link = `https://school.programmers.co.kr/learn/courses/30/lessons/${problemId}`;
+
+  return {
+    platform: 'programmers',
+    meta_info: {
+      title: title || `문제 ${problemId}`,
+      problem_id: String(problemId),
+      link,
+      level: level != null ? String(level) : null,
+      language,
+    },
+    submission_info: {
+      code,
+      memory: memory != null ? Number(memory) : null,
+      time: time != null ? Number(time) : null,
+    },
+  };
+}
+
 export function buildSweaWebhookPayload({
   problemId,
   contestProbId = '',
