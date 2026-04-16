@@ -218,7 +218,7 @@ async function fetchSourceCodeFromSubmitPage(problemId, submissionId) {
   return code;
 }
 
-function sendSubmissionMessage(meta, code, source) {
+function sendSubmissionMessage(meta, code) {
   const payload = { ...meta, code };
   chrome.runtime.sendMessage({
     type: "BAEKJOON_AC_SUBMISSION",
@@ -226,7 +226,7 @@ function sendSubmissionMessage(meta, code, source) {
   });
 }
 
-function sendSubmissionMessageAsync(meta, code, source) {
+function sendSubmissionMessageAsync(meta, code) {
   return new Promise((resolve, reject) => {
     const payload = { ...meta, code };
 
@@ -325,7 +325,7 @@ function ensureUploadButton(row, meta, colMap) {
         code = await fetchSourceCode(meta.submissionId);
       }
 
-      await sendSubmissionMessageAsync(meta, code, "status-page-button");
+      await sendSubmissionMessageAsync(meta, code);
       processedSubmissionIds.add(meta.submissionId);
       await saveUploadedId(meta.submissionId);
       setUploadButtonState(meta.submissionId, "done");
@@ -355,7 +355,15 @@ function isRowAccepted(row, colMap) {
   const text = (resultCell.textContent || "").trim();
   const hasAcText = text.includes(AC_TEXT_KEYWORD);
   const hasAcClass = resultCell.classList.contains(AC_CLASS_NAME);
-  return hasAcText || hasAcClass;
+  if (hasAcText || hasAcClass) return true;
+
+  // 부분 점수 문제: "100점" 형태로 표시되는 경우 점수 ≥ 40이면 허용
+  const scoreMatch = text.match(/^(\d+)점$/);
+  if (scoreMatch) {
+    return parseInt(scoreMatch[1], 10) >= 40;
+  }
+
+  return false;
 }
 
 /**
