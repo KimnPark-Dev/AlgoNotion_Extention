@@ -1,14 +1,19 @@
 {
   "manifest_version": 3,
   "name": "AlgoNotion",
-  "description": "Automatically sync your solved algorithm problems to Notion.",
-  "version": "2.4.2",
+  "short_name": "AlgoNotion",
+  "description": "알고노션은 백준·SWEA·프로그래머스 정답 제출을 Notion 데이터베이스에 자동으로 저장합니다. Automatically sync your solved algorithm problems to Notion.",
+  "version": "2.4.3",
   "icons": {
+    "16": "assets/icon16.png",
+    "48": "assets/icon48.png",
     "128": "assets/icon128.png"
   },
   "action": {
     "default_popup": "popup/popup.html",
     "default_icon": {
+      "16": "assets/icon16.png",
+      "48": "assets/icon48.png",
       "128": "assets/icon128.png"
     }
   },
@@ -22,6 +27,7 @@
     "https://www.acmicpc.net/*",
     "https://solved.ac/*",
     "https://swexpertacademy.com/*",
+    "https://school.programmers.co.kr/*",
     "https://algonotion.site/*",
     "https://api.notion.com/*"
   ],
@@ -56,6 +62,25 @@
       "js": [
         "content/swea_content.js"
       ],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": [
+        "https://school.programmers.co.kr/learn/*"
+      ],
+      "js": [
+        "content/programmers_content.js"
+      ],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": [
+        "https://school.programmers.co.kr/learn/*"
+      ],
+      "js": [
+        "content/programmers_monaco_bridge.js"
+      ],
+      "world": "MAIN",
       "run_at": "document_idle"
     }
   ],

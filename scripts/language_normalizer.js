@@ -40,6 +40,12 @@ const LANGUAGE_MAP = {
   'c++14 (gcc-10.5)': 'cpp',
   'java (openjdk 8)': 'java',
   'python 3.7 (pypy 7.3.9)': 'python',
+  // 프로그래머스 언어 표기
+  'python3': 'python',
+  'c++14': 'cpp',
+  'c++17': 'cpp',
+  'mysql': 'sql',
+  'oracle': 'sql',
 };
 
 /**

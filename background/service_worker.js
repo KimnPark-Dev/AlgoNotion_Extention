@@ -1,7 +1,7 @@
 // Content script로부터 전달되는 메시지 수신 → solved.ac 보강 → /analyze 호출 → Notion 저장
 import { fetchSolvedAcProblem, postToAnalyze } from '../scripts/api_client.js';
 import { normalizeLanguage } from '../scripts/language_normalizer.js';
-import { buildWebhookPayload, buildSweaWebhookPayload } from '../scripts/payload_builder.js';
+import { buildWebhookPayload, buildSweaWebhookPayload, buildProgrammersWebhookPayload } from '../scripts/payload_builder.js';
 import { postToNotionPage } from '../scripts/notion_client.js';
 
 const BACKEND_URL = 'https://algonotion.site';
@@ -122,6 +122,56 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
           sendResponse({ ok: true });
         } catch (err) {
           console.error('[AlgoNotion] SWEA 업로드 실패:', err.message);
+          sendResponse({
+            ok: false,
+            stage: 'background',
+            error: err?.message || String(err),
+          });
+        }
+      })();
+
+      return true;
+    }
+    case 'PROGRAMMERS_AC_SUBMISSION': {
+      const payload = message.payload || {};
+
+      if (!payload.code) {
+        sendResponse({ ok: false, stage: 'validation', error: 'payload has no code' });
+        return false;
+      }
+
+      (async () => {
+        try {
+          const language = normalizeLanguage(payload.language);
+          const notionSettings = await getNotionSettings();
+          if (!notionSettings.notionToken || !notionSettings.notionDatabaseId) {
+            throw new Error('Notion settings are missing. Configure token and database ID in the extension options.');
+          }
+
+          const analyzePayload = buildProgrammersWebhookPayload({
+            problemId: payload.problemId,
+            title: payload.title,
+            level: payload.level,
+            language,
+            code: payload.code,
+            time: payload.time,
+            memory: payload.memory,
+          });
+
+          const { analysis } = await postToAnalyze(BACKEND_URL, analyzePayload);
+
+          await postToNotionPage({
+            token: notionSettings.notionToken,
+            databaseId: notionSettings.notionDatabaseId,
+            userName: notionSettings.userName,
+            payload: analyzePayload,
+            analysis,
+          });
+
+          console.log('[AlgoNotion] 프로그래머스 업로드 완료:', payload.problemId);
+          sendResponse({ ok: true });
+        } catch (err) {
+          console.error('[AlgoNotion] 프로그래머스 업로드 실패:', err.message);
           sendResponse({
             ok: false,
             stage: 'background',
