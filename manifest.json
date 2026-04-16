@@ -3,7 +3,7 @@
   "name": "AlgoNotion",
   "short_name": "AlgoNotion",
   "description": "알고노션은 백준·SWEA·프로그래머스 정답 제출을 Notion 데이터베이스에 자동으로 저장합니다. Automatically sync your solved algorithm problems to Notion.",
-  "version": "2.4.3",
+  "version": "2.5.0",
   "icons": {
     "16": "assets/icon16.png",
     "48": "assets/icon48.png",
