@@ -168,3 +168,33 @@ extension/
 ## 기여
 
 [CONTRIBUTING.md](./CONTRIBUTING.md) 참고
+
+---
+
+## 프로젝트 현황
+
+| 항목 | 내용 |
+|------|------|
+| 상태 | in-progress |
+| 마감 | 2026-04-30 |
+| 담당 | ssong, dohyun, taeho |
+| 태그 | chrome-extension, notion, algorithm |
+
+## 태스크 현황
+
+### 진행 중
+
+| ID | 제목 | 담당 | 우선순위 | 예상 |
+|----|------|------|----------|------|
+| AlgoNotion-CORS | EC2 CORS_ALLOW_ORIGINS Extension ID로 업데이트 | dohyun | high | 1h |
+| AlgoNotion-SWEA | SWEA 난이도·메모리·시간 정보 미지원 처리 개선 | ssong | medium | 2h |
+| AlgoNotion-Monetize | Chrome Web Store 광고 정책 리서치 | ssong | low | 2h |
+| AlgoNotion-Velog | Velog 백준 자동 포스팅 가능 여부 조사 | taeho | medium | 3h |
+| AlgoNotion-Platform | 타 플랫폼(LeetCode·Codeforces 등) 확장성 조사 | taeho | medium | 3h |
+
+### 완료
+
+| ID | 제목 | 담당 |
+|----|------|------|
+| AlgoNotion-Store | Chrome Web Store 재제출 | ssong |
+| AlgoNotion-BOJ | BOJ 부분 점수 버튼 동작 재확인 | ssong |
