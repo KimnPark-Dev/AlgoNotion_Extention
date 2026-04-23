@@ -92,6 +92,111 @@
         font-weight: 600;
       }
 
+      #github-status-label {
+        font-size: 12px;
+        color: #888;
+      }
+
+      #github-status-label.connected {
+        color: #16a34a;
+        font-weight: 600;
+      }
+
+      #github-repo-area { display: none; }
+
+      #github-repo-select {
+        flex: 1 1 0;
+        min-width: 0;
+        max-width: 100%;
+        padding: 7px 28px 7px 9px;
+        background: #fff;
+        border: 1px solid #ddd;
+        border-radius: 7px;
+        color: #111;
+        font-size: 12px;
+        font-family: inherit;
+        appearance: none;
+        -webkit-appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23aaa'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 9px center;
+        transition: border-color 0.15s;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        overflow: hidden;
+      }
+
+      #github-repo-select:focus { outline: none; border-color: #7c3aed; }
+      #github-repo-select:disabled { opacity: 0.5; cursor: not-allowed; }
+
+      #btn-refresh-repo {
+        padding: 7px 9px;
+        background: #fff;
+        border: 1px solid #ddd;
+        border-radius: 7px;
+        color: #888;
+        font-size: 13px;
+        transition: color 0.15s, border-color 0.15s;
+      }
+
+      #btn-refresh-repo:hover { color: #333; border-color: #bbb; }
+      #btn-refresh-repo:disabled { opacity: 0.4; cursor: not-allowed; }
+
+      #repo-select-hint {
+        display: block;
+        font-size: 11px;
+        color: #aaa;
+        margin-top: 5px;
+      }
+
+      /* 레포 생성 영역 */
+      .repo-create-row {
+        display: flex;
+        gap: 6px;
+        margin-top: 8px;
+      }
+
+      #new-repo-name {
+        flex: 1;
+        padding: 7px 9px;
+        background: #fff;
+        border: 1px solid #ddd;
+        border-radius: 7px;
+        color: #111;
+        font-size: 12px;
+        font-family: inherit;
+      }
+
+      #new-repo-name:focus { outline: none; border-color: #7c3aed; }
+
+      #btn-create-repo {
+        padding: 6px 10px;
+        font-size: 11px;
+        font-weight: 600;
+        background: #7c3aed;
+        color: #fff;
+        border: none;
+        border-radius: 7px;
+        white-space: nowrap;
+      }
+
+      #btn-create-repo:hover { background: #6d28d9; }
+      #btn-create-repo:disabled { opacity: 0.5; cursor: not-allowed; }
+
+      .repo-private-row {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        margin-top: 6px;
+        font-size: 11px;
+        color: #888;
+      }
+
+      .repo-private-row input[type="checkbox"] {
+        margin: 0;
+        cursor: pointer;
+      }
+
       button { cursor: pointer; font-family: inherit; }
 
       .btn-connect {
@@ -141,10 +246,13 @@
       .db-select-row {
         display: flex;
         gap: 6px;
+        min-width: 0;        /* flex 자식들이 부모 폭을 넘어가지 않게 축소 허용 */
       }
 
       #notion-db-select {
-        flex: 1;
+        flex: 1 1 0;          /* 기본 너비 0에서 시작해 남은 공간만 차지 */
+        min-width: 0;          /* select가 옵션 내용 기준으로 팽창하지 않도록 */
+        max-width: 100%;
         padding: 7px 28px 7px 9px;
         background: #fff;
         border: 1px solid #ddd;
@@ -158,6 +266,7 @@
         background-repeat: no-repeat;
         background-position: right 9px center;
         transition: border-color 0.15s;
+        text-overflow: ellipsis;
       }
 
       #notion-db-select:focus {
@@ -274,6 +383,35 @@
             <span>첫 연결 직후에는 목록이 나타나기까지 수 초가 걸릴 수 있어요.</span>
           </div>
           <span id="db-select-hint"></span>
+        </div>
+      </div>
+
+      <div class="card" id="github-card">
+        <div class="connect-row">
+          <span id="github-status-label">GitHub 연결 안 됨</span>
+          <button id="btn-github-connect" class="btn-connect" type="button">GitHub 연결</button>
+          <button id="btn-github-disconnect" class="btn-disconnect" type="button" style="display:none;">연결 해제</button>
+        </div>
+
+        <div id="github-repo-area">
+          <div class="divider"></div>
+          <div class="db-label">레포지토리</div>
+          <div class="db-select-row">
+            <select id="github-repo-select">
+              <option value="">-- 선택하세요 --</option>
+            </select>
+            <button id="btn-refresh-repo" type="button">↻</button>
+          </div>
+          <span id="repo-select-hint"></span>
+
+          <div class="repo-create-row">
+            <input id="new-repo-name" type="text" placeholder="새 레포 이름 (예: algorithm-solutions)" />
+            <button id="btn-create-repo" type="button">+ 생성</button>
+          </div>
+          <label class="repo-private-row">
+            <input id="new-repo-private" type="checkbox" />
+            <span>비공개(private) 레포로 생성</span>
+          </label>
         </div>
       </div>
 
