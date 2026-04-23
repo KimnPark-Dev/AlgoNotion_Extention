@@ -1,19 +1,27 @@
 // 프로그래머스(school.programmers.co.kr) 코딩 테스트 페이지 감지 및 Notion 업로드 버튼 주입
 
 const UPLOADED_IDS_KEY = 'algonotion_programmers_uploaded_ids';
+const DEV_ALLOW_REUPLOAD_KEY = 'algonotion_dev_allow_reupload';
 
 const processedIds = new Set();
 const buttonStateMap = new Map();
+let devAllowReupload = false;
 
 // ─── Storage ──────────────────────────────────────────────────────────────────
 
 async function loadUploadedIds() {
-  const st = await chrome.storage.local.get(UPLOADED_IDS_KEY);
+  const st = await chrome.storage.local.get([UPLOADED_IDS_KEY, DEV_ALLOW_REUPLOAD_KEY]);
+  devAllowReupload = !!st[DEV_ALLOW_REUPLOAD_KEY];
+  if (devAllowReupload) {
+    console.log('[AlgoNotion] 🔓 프로그래머스 dev mode: 재업로드 허용');
+    return;
+  }
   const ids = st[UPLOADED_IDS_KEY] || [];
   ids.forEach((id) => processedIds.add(String(id)));
 }
 
 async function saveUploadedId(id) {
+  if (devAllowReupload) return;
   const st = await chrome.storage.local.get(UPLOADED_IDS_KEY);
   const ids = st[UPLOADED_IDS_KEY] || [];
   if (!ids.includes(String(id))) {
@@ -138,6 +146,57 @@ function getSelectedLanguage() {
   }
 
   return '';
+}
+
+// ─── Problem detail extraction ────────────────────────────────────────────────
+
+/**
+ * 문제 본문(설명/제한사항/입출력 예)을 HTML 그대로 추출한다.
+ * 프로그래머스는 보통 #tour1 또는 .guide-section 안에 전체가 한 덩어리로 있음.
+ * @returns {{description: string, input: string, output: string}|null}
+ */
+function getProblemDetail() {
+  const selectors = [
+    'div.guide-section .markdown',
+    '.guide-section',
+    '#tour1',
+    '.problem_cont',
+    '.challenge-detail',
+    'section.algorithm-problem-contents',
+    'div[class*="guide"]',
+  ];
+
+  for (const sel of selectors) {
+    const el = document.querySelector(sel);
+    if (!el) continue;
+    const html = (el.innerHTML || '').trim();
+    if (html.length > 200) {
+      return { description: html, input: '', output: '' };
+    }
+  }
+  return null;
+}
+
+/**
+ * 문제 분류 태그 추출 (breadcrumb 또는 문제 카테고리 영역).
+ * e.g. "해시", "완전탐색", "DP"
+ * @returns {string[]}
+ */
+function getProblemTags() {
+  const tags = new Set();
+
+  // Breadcrumb에서 중간 항목 (e.g. "코딩테스트 연습 > 해시 > 완주하지 못한 선수")
+  const breadcrumbs = document.querySelectorAll(
+    'nav[aria-label="breadcrumb"] a, .breadcrumb a, ol.breadcrumb li a, nav.breadcrumb a'
+  );
+  breadcrumbs.forEach((el) => {
+    const t = (el.textContent || '').trim();
+    if (t && t !== '코딩테스트 연습' && t !== '홈' && !/^lv\.?\d/i.test(t) && t.length < 20) {
+      tags.add(t);
+    }
+  });
+
+  return Array.from(tags);
 }
 
 // ─── Performance extraction ───────────────────────────────────────────────────
@@ -297,6 +356,8 @@ function injectButtonIntoModal(modalContent) {
       const level = getProblemLevel();
       const language = getSelectedLanguage();
       const { time, memory } = getSubmissionPerformance();
+      const problemDetail = getProblemDetail();
+      const tags = getProblemTags();
 
       let code = await getCodeFromMonaco();
       if (!code.trim()) code = getCodeFromDom();
@@ -312,12 +373,15 @@ function injectButtonIntoModal(modalContent) {
         code,
         time,
         memory,
+        tags,
+        problemDetail,
       });
 
-      processedIds.add(lessonId);
+      if (!devAllowReupload) processedIds.add(lessonId);
       await saveUploadedId(lessonId);
-      setState(lessonId, 'done');
-      syncUI('done');
+      const finalState = devAllowReupload ? 'idle' : 'done';
+      setState(lessonId, finalState);
+      syncUI(finalState);
     } catch (err) {
       console.error('[AlgoNotion] 프로그래머스 업로드 실패:', err?.message);
       setState(lessonId, 'failed');
