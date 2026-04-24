@@ -5,9 +5,9 @@
 const SOLVED_AC_BASE = 'https://solved.ac/api/v3/problem/show';
 
 /**
- * solved.ac에서 문제 정보(한글 제목, 티어)를 가져온다.
+ * solved.ac에서 문제 정보(한글 제목, 티어, 한글 태그)를 가져온다.
  * @param {number|string} problemId
- * @returns {Promise<{ titleKo: string; level: number | null }>}
+ * @returns {Promise<{ titleKo: string; level: number | null; tagsKo: string[] }>}
  */
 export async function fetchSolvedAcProblem(problemId) {
   const url = `${SOLVED_AC_BASE}?problemId=${encodeURIComponent(problemId)}`;
@@ -21,7 +21,15 @@ export async function fetchSolvedAcProblem(problemId) {
   const titleKo = data.titleKo ?? data.title ?? '';
   const level = data.level != null ? data.level : null;
 
-  return { titleKo, level };
+  const tagsKo = Array.isArray(data.tags)
+    ? data.tags
+        .flatMap(t => Array.isArray(t.displayNames) ? t.displayNames : [])
+        .filter(n => n?.language === 'ko')
+        .map(n => n.name)
+        .filter(Boolean)
+    : [];
+
+  return { titleKo, level, tagsKo };
 }
 
 /**

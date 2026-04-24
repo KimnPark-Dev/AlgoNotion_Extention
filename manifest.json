@@ -29,7 +29,9 @@
     "https://swexpertacademy.com/*",
     "https://school.programmers.co.kr/*",
     "https://algonotion.site/*",
-    "https://api.notion.com/*"
+    "https://api.notion.com/*",
+    "https://github.com/*",
+    "https://api.github.com/*"
   ],
   "background": {
     "service_worker": "background/service_worker.js",
