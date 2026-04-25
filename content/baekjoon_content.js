@@ -20,13 +20,20 @@ const SOURCE_FETCH_MAX_RETRIES = 5;
 const SOURCE_FETCH_RETRY_DELAYS_MS = [1000, 1500, 2500, 4000, 6000];
 
 const UPLOADED_IDS_KEY = 'algonotion_uploaded_ids';
+const DEV_ALLOW_REUPLOAD_KEY = 'algonotion_dev_allow_reupload';
 
 const processedSubmissionIds = new Set();
 const uploadButtonStateBySubmissionId = new Map();
 let pollingIntervalId = null;
+let devAllowReupload = false;
 
 async function loadUploadedIds() {
-  const st = await chrome.storage.local.get(UPLOADED_IDS_KEY);
+  const st = await chrome.storage.local.get([UPLOADED_IDS_KEY, DEV_ALLOW_REUPLOAD_KEY]);
+  devAllowReupload = !!st[DEV_ALLOW_REUPLOAD_KEY];
+  if (devAllowReupload) {
+    console.log('[AlgoNotion] 🔓 dev mode: 재업로드 허용');
+    return;
+  }
   const ids = st[UPLOADED_IDS_KEY] || [];
   ids.forEach((id) => {
     processedSubmissionIds.add(id);
@@ -35,6 +42,7 @@ async function loadUploadedIds() {
 }
 
 async function saveUploadedId(submissionId) {
+  if (devAllowReupload) return;
   const st = await chrome.storage.local.get(UPLOADED_IDS_KEY);
   const ids = st[UPLOADED_IDS_KEY] || [];
   if (!ids.includes(submissionId)) {
@@ -195,6 +203,39 @@ function extractSubmitPageMeta() {
   };
 }
 
+/**
+ * 백준 문제 페이지에서 문제 설명/입력/출력을 HTML 그대로 추출한다.
+ * BaekjoonHub 방식과 동일하게 innerHTML을 사용 — GitHub 마크다운이 HTML 태그를 그대로 렌더링.
+ * @param {string} problemId
+ * @returns {Promise<{description: string, input: string, output: string} | null>}
+ */
+async function fetchProblemDetail(problemId) {
+  try {
+    const res = await fetch(`https://www.acmicpc.net/problem/${problemId}`, {
+      credentials: 'include',
+      cache: 'no-store',
+    });
+    if (!res.ok) return null;
+
+    const html = await res.text();
+    const doc = new DOMParser().parseFromString(html, 'text/html');
+
+    const pick = (id) => {
+      const el = doc.querySelector(`#${id}`);
+      return el ? (el.innerHTML || '').trim() : '';
+    };
+
+    return {
+      description: pick('problem_description'),
+      input: pick('problem_input'),
+      output: pick('problem_output'),
+    };
+  } catch (err) {
+    console.warn('[AlgoNotion] 문제 상세 fetch 실패:', err?.message);
+    return null;
+  }
+}
+
 async function fetchSourceCodeFromSubmitPage(problemId, submissionId) {
   const url = `https://www.acmicpc.net/submit/${problemId}/${submissionId}`;
 
@@ -325,10 +366,13 @@ function ensureUploadButton(row, meta, colMap) {
         code = await fetchSourceCode(meta.submissionId);
       }
 
-      await sendSubmissionMessageAsync(meta, code);
-      processedSubmissionIds.add(meta.submissionId);
+      // 문제 상세 페이지 HTML 파싱 (실패해도 업로드는 계속)
+      const problemDetail = await fetchProblemDetail(meta.problemId);
+
+      await sendSubmissionMessageAsync({ ...meta, problemDetail }, code);
+      if (!devAllowReupload) processedSubmissionIds.add(meta.submissionId);
       await saveUploadedId(meta.submissionId);
-      setUploadButtonState(meta.submissionId, "done");
+      setUploadButtonState(meta.submissionId, devAllowReupload ? "idle" : "done");
       syncButtonUI();
     } catch (err) {
       console.error("[AlgoNotion] upload failed:", meta.submissionId, err?.message);
