@@ -1,5 +1,5 @@
 import { startNotionOAuth, disconnectNotion, getNotionToken, fetchNotionDatabases } from '../scripts/oauth.js';
-import { startGitHubOAuth, disconnectGitHub, getGitHubToken, fetchGitHubRepos, getGitHubRepo, saveGitHubRepo, createGitHubRepo } from '../scripts/github_oauth.js';
+import { startGitHubOAuth, disconnectGitHub, getGitHubToken, fetchGitHubRepos, getGitHubRepo, getGitHubRepoMeta, saveGitHubRepo, createGitHubRepo } from '../scripts/github_oauth.js';
 
 const NOTION_DATABASE_ID_KEY = 'algonotion_notion_database_id';
 const USER_NAME_KEY = 'algonotion_user_name';
@@ -8,12 +8,19 @@ const btnGithubConnect    = document.getElementById('btn-github-connect');
 const btnGithubDisconnect = document.getElementById('btn-github-disconnect');
 const githubStatusLabel   = document.getElementById('github-status-label');
 const githubRepoArea      = document.getElementById('github-repo-area');
-const githubRepoSelect    = document.getElementById('github-repo-select');
+const githubRepoTrigger   = document.getElementById('github-repo-trigger');
+const githubRepoLabel     = document.getElementById('github-repo-label');
+const githubRepoMenu      = document.getElementById('github-repo-menu');
 const btnRefreshRepo      = document.getElementById('btn-refresh-repo');
 const repoSelectHint      = document.getElementById('repo-select-hint');
+const repoCreateArea      = document.getElementById('repo-create-area');
 const newRepoNameInput    = document.getElementById('new-repo-name');
 const newRepoPrivateInput = document.getElementById('new-repo-private');
 const btnCreateRepo       = document.getElementById('btn-create-repo');
+
+// 커스텀 드롭다운 내부 상태
+const repoOptions = [];  // [{fullName, private}]
+let selectedRepoFullName = null;
 
 const userNameInput = document.getElementById('user-name');
 const statusEl = document.getElementById('status');
@@ -172,42 +179,119 @@ function setGitHubConnectedUI(connected) {
   }
 }
 
+// ─── 커스텀 드롭다운 헬퍼 ────────────────────────────────────────────────────
+
+function shortRepoName(fullName) {
+  return fullName.split('/').slice(1).join('/') || fullName;
+}
+
+function renderRepoLabel() {
+  if (!selectedRepoFullName) {
+    githubRepoLabel.textContent = '-- 선택하세요 --';
+    githubRepoLabel.classList.add('placeholder');
+    if (repoCreateArea) repoCreateArea.style.display = 'block';
+    return;
+  }
+  const selected = repoOptions.find(o => o.fullName === selectedRepoFullName);
+  const text = shortRepoName(selectedRepoFullName) + (selected?.private ? ' 🔒' : '');
+  githubRepoLabel.textContent = text;
+  githubRepoLabel.title = selectedRepoFullName;
+  githubRepoLabel.classList.remove('placeholder');
+  // 이미 레포를 선택했으면 생성 영역 숨김
+  if (repoCreateArea) repoCreateArea.style.display = 'none';
+}
+
+function renderRepoMenu() {
+  githubRepoMenu.innerHTML = '';
+
+  if (repoOptions.length === 0) {
+    const empty = document.createElement('div');
+    empty.className = 'custom-select-option empty';
+    empty.textContent = '레포가 없습니다';
+    githubRepoMenu.appendChild(empty);
+    return;
+  }
+
+  repoOptions.forEach(repo => {
+    const el = document.createElement('div');
+    el.className = 'custom-select-option';
+    if (repo.fullName === selectedRepoFullName) el.classList.add('selected');
+    el.textContent = shortRepoName(repo.fullName) + (repo.private ? ' 🔒' : '');
+    el.title = repo.fullName;
+    el.addEventListener('click', async () => {
+      selectedRepoFullName = repo.fullName;
+      renderRepoLabel();
+      closeRepoMenu();
+      await saveGitHubRepo(repo.fullName, repo.private);
+      showStatus('레포지토리가 저장되었습니다.', 'success');
+    });
+    githubRepoMenu.appendChild(el);
+  });
+}
+
+function openRepoMenu() {
+  githubRepoMenu.classList.add('open');
+  githubRepoTrigger.classList.add('open');
+  document.body.classList.add('repo-menu-open');
+}
+
+function closeRepoMenu() {
+  githubRepoMenu.classList.remove('open');
+  githubRepoTrigger.classList.remove('open');
+  document.body.classList.remove('repo-menu-open');
+}
+
+// 외부 클릭 시 닫기
+document.addEventListener('click', (e) => {
+  if (!githubRepoTrigger.contains(e.target) && !githubRepoMenu.contains(e.target)) {
+    closeRepoMenu();
+  }
+});
+
+githubRepoTrigger.addEventListener('click', () => {
+  if (githubRepoTrigger.disabled) return;
+  if (githubRepoMenu.classList.contains('open')) closeRepoMenu();
+  else openRepoMenu();
+});
+
+// ─── 레포 목록 로드 ─────────────────────────────────────────────────────────
+
 async function loadGitHubRepos() {
   const token = await getGitHubToken();
   if (!token) return;
 
-  githubRepoSelect.disabled = true;
+  githubRepoTrigger.disabled = true;
   btnRefreshRepo.disabled = true;
   if (repoSelectHint) repoSelectHint.textContent = '불러오는 중...';
+
+  const savedMeta = await getGitHubRepoMeta();
+  const currentValue = selectedRepoFullName || savedMeta.fullName || '';
 
   try {
     const repos = await fetchGitHubRepos(token);
 
-    while (githubRepoSelect.options.length > 1) githubRepoSelect.remove(1);
+    // 상태 초기화 + API 응답 반영
+    repoOptions.length = 0;
+    repos.forEach(r => repoOptions.push({ fullName: r.fullName, private: r.private }));
 
-    if (repos.length === 0) {
-      if (repoSelectHint) repoSelectHint.textContent = '접근 가능한 레포가 없습니다.';
-      return;
+    // API에 없지만 저장된 레포(방금 만든 레포 등)는 최상단에 고정
+    const apiHasCurrent = repos.some(r => r.fullName === currentValue);
+    if (currentValue && !apiHasCurrent) {
+      repoOptions.unshift({ fullName: currentValue, private: savedMeta.private });
     }
 
-    repos.forEach(repo => {
-      const option = document.createElement('option');
-      option.value = repo.fullName;
-      // owner/repo 중 repo 이름만 표시 + 🔒는 비공개 표시
-      const repoShort = repo.fullName.split('/').slice(1).join('/') || repo.fullName;
-      option.textContent = repoShort + (repo.private ? ' 🔒' : '');
-      option.title = repo.fullName;  // hover 시 full name
-      githubRepoSelect.appendChild(option);
-    });
+    if (currentValue) selectedRepoFullName = currentValue;
 
-    const savedRepo = await getGitHubRepo();
-    if (savedRepo) githubRepoSelect.value = savedRepo;
+    renderRepoMenu();
+    renderRepoLabel();
 
-    if (repoSelectHint) repoSelectHint.textContent = `${repos.length}개`;
+    if (repoSelectHint) {
+      repoSelectHint.textContent = repos.length === 0 ? '접근 가능한 레포가 없습니다.' : `${repos.length}개`;
+    }
   } catch (err) {
     if (repoSelectHint) repoSelectHint.textContent = `로드 실패: ${err.message}`;
   } finally {
-    githubRepoSelect.disabled = false;
+    githubRepoTrigger.disabled = false;
     btnRefreshRepo.disabled = false;
   }
 }
@@ -243,13 +327,6 @@ btnGithubDisconnect.addEventListener('click', async () => {
 
 btnRefreshRepo.addEventListener('click', loadGitHubRepos);
 
-githubRepoSelect.addEventListener('change', async () => {
-  const repo = githubRepoSelect.value;
-  if (!repo) return;
-  await saveGitHubRepo(repo);
-  showStatus('레포지토리가 저장되었습니다.', 'success');
-});
-
 btnCreateRepo.addEventListener('click', async () => {
   const name = newRepoNameInput.value.trim();
   if (!name) {
@@ -271,11 +348,20 @@ btnCreateRepo.addEventListener('click', async () => {
   btnCreateRepo.textContent = '생성 중...';
 
   try {
-    const { fullName } = await createGitHubRepo(token, name, newRepoPrivateInput.checked);
-    await saveGitHubRepo(fullName);
-    await loadGitHubRepos();
-    githubRepoSelect.value = fullName;
+    const { fullName, private: isPrivate } = await createGitHubRepo(token, name, newRepoPrivateInput.checked);
+    await saveGitHubRepo(fullName, isPrivate);
+
+    // 방금 만든 레포를 드롭다운 "맨 위"에 고정 + 자동 선택
+    const existingIdx = repoOptions.findIndex(o => o.fullName === fullName);
+    if (existingIdx >= 0) repoOptions.splice(existingIdx, 1);
+    repoOptions.unshift({ fullName, private: isPrivate });
+
+    selectedRepoFullName = fullName;
+    renderRepoMenu();
+    renderRepoLabel();
+
     newRepoNameInput.value = '';
+    newRepoPrivateInput.checked = false;
     showStatus(`레포 생성 완료: ${fullName}`, 'success');
   } catch (err) {
     showStatus(`생성 실패: ${err.message}`, 'error');

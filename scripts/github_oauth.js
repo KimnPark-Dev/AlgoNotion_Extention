@@ -14,6 +14,7 @@ const GITHUB_CLIENT_ID = 'Ov23lirjWKjWDkn481WD';  // GitHub OAuth App Client ID 
 const BACKEND_URL = 'https://algonotion.site';
 const GITHUB_TOKEN_KEY = 'algonotion_github_token';
 const GITHUB_REPO_KEY = 'algonotion_github_repo';
+const GITHUB_REPO_PRIVATE_KEY = 'algonotion_github_repo_private';
 
 export async function startGitHubOAuth() {
   const extensionId = chrome.runtime.id;
@@ -41,7 +42,7 @@ export async function startGitHubOAuth() {
 }
 
 export async function disconnectGitHub() {
-  await chrome.storage.local.remove([GITHUB_TOKEN_KEY, GITHUB_REPO_KEY]);
+  await chrome.storage.local.remove([GITHUB_TOKEN_KEY, GITHUB_REPO_KEY, GITHUB_REPO_PRIVATE_KEY]);
 }
 
 export async function getGitHubToken() {
@@ -80,8 +81,22 @@ export async function getGitHubRepo() {
   return (result[GITHUB_REPO_KEY] || '').trim() || null;
 }
 
-export async function saveGitHubRepo(fullName) {
-  await chrome.storage.local.set({ [GITHUB_REPO_KEY]: fullName });
+/**
+ * @returns {Promise<{fullName: string|null, private: boolean}>}
+ */
+export async function getGitHubRepoMeta() {
+  const result = await chrome.storage.local.get([GITHUB_REPO_KEY, GITHUB_REPO_PRIVATE_KEY]);
+  return {
+    fullName: (result[GITHUB_REPO_KEY] || '').trim() || null,
+    private: !!result[GITHUB_REPO_PRIVATE_KEY],
+  };
+}
+
+export async function saveGitHubRepo(fullName, isPrivate = false) {
+  await chrome.storage.local.set({
+    [GITHUB_REPO_KEY]: fullName,
+    [GITHUB_REPO_PRIVATE_KEY]: !!isPrivate,
+  });
 }
 
 /**
@@ -89,7 +104,7 @@ export async function saveGitHubRepo(fullName) {
  * @param {string} token
  * @param {string} name       - 레포 이름 (e.g., "algorithm-solutions")
  * @param {boolean} isPrivate - 비공개 여부
- * @returns {Promise<{fullName: string}>}
+ * @returns {Promise<{fullName: string, private: boolean}>}
  */
 export async function createGitHubRepo(token, name, isPrivate = false) {
   const res = await fetch('https://api.github.com/user/repos', {
@@ -113,5 +128,5 @@ export async function createGitHubRepo(token, name, isPrivate = false) {
   }
 
   const data = await res.json();
-  return { fullName: data.full_name };
+  return { fullName: data.full_name, private: !!data.private };
 }

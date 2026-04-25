@@ -11,6 +11,12 @@
         width: 300px;
         background: #fff;
         color: #111;
+        transition: min-height 0.15s ease;
+      }
+
+      /* 레포 드롭다운이 펼쳐졌을 때 Chrome 팝업 최대 높이(600px)까지 확장 */
+      body.repo-menu-open {
+        min-height: 600px;
       }
 
       /* 헤더 */
@@ -104,10 +110,15 @@
 
       #github-repo-area { display: none; }
 
-      #github-repo-select {
+      /* 커스텀 드롭다운 — 고정 max-height + 내부 스크롤 */
+      .custom-select-wrapper {
+        position: relative;
         flex: 1 1 0;
         min-width: 0;
-        max-width: 100%;
+      }
+
+      #github-repo-trigger {
+        width: 100%;
         padding: 7px 28px 7px 9px;
         background: #fff;
         border: 1px solid #ddd;
@@ -115,19 +126,61 @@
         color: #111;
         font-size: 12px;
         font-family: inherit;
-        appearance: none;
-        -webkit-appearance: none;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        overflow: hidden;
+        transition: border-color 0.15s;
         background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23aaa'/%3E%3C/svg%3E");
         background-repeat: no-repeat;
         background-position: right 9px center;
-        transition: border-color 0.15s;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-        overflow: hidden;
       }
 
-      #github-repo-select:focus { outline: none; border-color: #7c3aed; }
-      #github-repo-select:disabled { opacity: 0.5; cursor: not-allowed; }
+      #github-repo-trigger:hover { border-color: #bbb; }
+      #github-repo-trigger.open { border-color: #7c3aed; }
+      #github-repo-trigger[disabled] { opacity: 0.5; cursor: not-allowed; }
+
+      #github-repo-trigger .custom-select-text {
+        flex: 1;
+        text-align: left;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      #github-repo-trigger .custom-select-text.placeholder { color: #aaa; }
+
+      #github-repo-menu {
+        position: absolute;
+        top: calc(100% + 2px);
+        left: 0;
+        right: 0;
+        max-height: 130px;
+        overflow-y: auto;
+        background: #fff;
+        border: 1px solid #ddd;
+        border-radius: 7px;
+        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+        z-index: 100;
+        display: none;
+      }
+
+      #github-repo-menu.open { display: block; }
+
+      .custom-select-option {
+        padding: 8px 10px;
+        font-size: 12px;
+        color: #111;
+        cursor: pointer;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .custom-select-option:hover { background: #f3f0ff; color: #6d28d9; }
+      .custom-select-option.selected { background: #f3f0ff; color: #6d28d9; font-weight: 600; }
+      .custom-select-option.empty { color: #aaa; cursor: default; font-style: italic; }
+      .custom-select-option.empty:hover { background: transparent; }
 
       #btn-refresh-repo {
         padding: 7px 9px;
@@ -362,6 +415,11 @@
     </div>
 
     <div class="body">
+      <div class="field-group">
+        <div class="field-label">사용자 이름</div>
+        <input id="user-name" type="text" placeholder="name" />
+      </div>
+
       <div class="card" id="notion-card">
         <div class="connect-row">
           <span id="notion-status-label">연결되지 않음</span>
@@ -397,27 +455,27 @@
           <div class="divider"></div>
           <div class="db-label">레포지토리</div>
           <div class="db-select-row">
-            <select id="github-repo-select">
-              <option value="">-- 선택하세요 --</option>
-            </select>
+            <div class="custom-select-wrapper">
+              <button id="github-repo-trigger" type="button">
+                <span class="custom-select-text placeholder" id="github-repo-label">-- 선택하세요 --</span>
+              </button>
+              <div id="github-repo-menu"></div>
+            </div>
             <button id="btn-refresh-repo" type="button">↻</button>
           </div>
           <span id="repo-select-hint"></span>
 
-          <div class="repo-create-row">
-            <input id="new-repo-name" type="text" placeholder="새 레포 이름 (예: algorithm-solutions)" />
-            <button id="btn-create-repo" type="button">+ 생성</button>
+          <div id="repo-create-area">
+            <div class="repo-create-row">
+              <input id="new-repo-name" type="text" placeholder="새 레포 이름 (예: algorithm-solutions)" />
+              <button id="btn-create-repo" type="button">+ 생성</button>
+            </div>
+            <label class="repo-private-row">
+              <input id="new-repo-private" type="checkbox" />
+              <span>비공개(private) 레포로 생성</span>
+            </label>
           </div>
-          <label class="repo-private-row">
-            <input id="new-repo-private" type="checkbox" />
-            <span>비공개(private) 레포로 생성</span>
-          </label>
         </div>
-      </div>
-
-      <div class="field-group">
-        <div class="field-label">사용자 이름</div>
-        <input id="user-name" type="text" placeholder="name" />
       </div>
 
       <div id="status"></div>
