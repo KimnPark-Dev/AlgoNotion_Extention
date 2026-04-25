@@ -82,10 +82,13 @@ extension/
 │   └── popup.js                # 팝업 동작
 └── scripts/
     ├── api_client.js           # solved.ac / 백엔드 API 호출
+    ├── github_client.js        # GitHub REST API — 풀이 파일 커밋 (5단계 Git 저수준 API)
+    ├── github_oauth.js         # GitHub OAuth 흐름 (launchWebAuthFlow → 백엔드 콜백 → 토큰 저장)
     ├── language_normalizer.js  # 언어명 정규화 (백준 + SWEA + 프로그래머스)
     ├── notion_client.js        # Notion API 직접 호출 (페이지 생성)
     ├── oauth.js                # Notion OAuth 흐름 (연결/해제/토큰 조회/DB 목록 조회)
-    └── payload_builder.js      # /analyze 페이로드 조립 (백준 + SWEA + 프로그래머스)
+    ├── payload_builder.js      # /analyze 페이로드 조립 (백준 + SWEA + 프로그래머스)
+    └── readme_builder.js       # GitHub 레포용 README.md · Summary.md 마크다운 생성
 ```
 
 ## 설치 방법
@@ -118,6 +121,19 @@ extension/
 3. Notion 데이터베이스에 자동 저장
 
 ## 업데이트 이력
+
+### v2.6.0
+- **GitHub 동시 업로드 지원** — Notion 저장과 동시에 GitHub 레포에 풀이 파일을 자동 커밋
+  - Git 저수준 API 5단계 흐름(`github_client.js`)으로 다중 파일 커밋 구현 (blob → tree → commit → ref)
+  - `README.md` · `Summary.md` 자동 생성(`readme_builder.js`) — 플랫폼별 문제 링크·풀이 시간·언어 기록
+  - `service_worker.js`에서 Notion·GitHub 업로드를 독립 흐름으로 분리 — 한쪽 실패가 다른 쪽에 영향 없음
+- **GitHub OAuth 연동** — 팝업에서 "GitHub 연결" 버튼 클릭 → `launchWebAuthFlow` → 백엔드 `/oauth/github/callback` → 토큰 저장
+  - private 레포 여부를 `chrome.storage.local`에 함께 저장해 업로드 시 활용
+  - 레포 목록 커스텀 드롭다운 UI 추가 — 연결된 레포를 팝업에서 바로 선택
+- **플랫폼별 문제 메타데이터·본문 추출 강화**
+  - 백준: 문제 본문·입출력 예제 추출 추가
+  - 프로그래머스: 문제 제목·레벨·본문 DOM 추출 개선
+  - SWEA: 문제 본문·입출력 추출 및 메타데이터 파싱 강화
 
 ### v2.5.0
 - **프로그래머스 플랫폼 지원 추가** — `school.programmers.co.kr` 정답 제출을 Notion에 자동 저장
@@ -198,3 +214,7 @@ extension/
 |----|------|------|
 | AlgoNotion-Store | Chrome Web Store 재제출 | ssong |
 | AlgoNotion-BOJ | BOJ 부분 점수 버튼 동작 재확인 | ssong |
+| AlgoNotion-GitHub-OAuth | GitHub OAuth 연동 및 API 클라이언트 구현 (FE+BE) | taeho |
+| AlgoNotion-GitHub-Upload | GitHub 동시 업로드 흐름 + README·Summary 자동 생성 | taeho |
+| AlgoNotion-Platform-Meta | 플랫폼별 문제 메타데이터·본문 추출 강화 (BOJ·Programmers·SWEA) | taeho |
+| AlgoNotion-GitHub-UI | GitHub 레포 관리 팝업 UI 구현 및 드롭다운 개선 | taeho |
