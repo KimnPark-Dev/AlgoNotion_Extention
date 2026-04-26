@@ -311,7 +311,7 @@ function ensureUploadButton(row, meta, colMap) {
   const button = document.createElement("button");
   button.type = "button";
   button.className = "algonotion-upload-btn";
-  button.textContent = "Notion 업로드";
+  button.textContent = "업로드";
   button.style.marginLeft = "8px";
   button.style.padding = "2px 8px";
   button.style.fontSize = "12px";
@@ -344,7 +344,7 @@ function ensureUploadButton(row, meta, colMap) {
     }
 
     button.disabled = false;
-    button.textContent = "Notion 업로드";
+    button.textContent = "업로드";
     button.style.borderColor = "#2b6cb0";
     button.style.color = "#2b6cb0";
   };

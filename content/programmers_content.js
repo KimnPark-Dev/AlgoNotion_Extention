@@ -334,7 +334,7 @@ function injectButtonIntoModal(modalContent) {
       btn.textContent = '다시 업로드';
       btn.style.cssText = 'cursor:pointer;color:#c62828;border-color:#c62828;';
     } else {
-      btn.textContent = 'Notion 업로드';
+      btn.textContent = '업로드';
       btn.style.cssText = 'cursor:pointer;color:#1565c0;border-color:#1565c0;';
     }
   };

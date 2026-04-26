@@ -463,7 +463,7 @@ function createUploadButton(contestHistoryId, getMetaFn) {
       btn.style.color = '#c62828';
     } else {
       btn.disabled = false;
-      btn.textContent = 'Notion 업로드';
+      btn.textContent = '업로드';
       btn.style.borderColor = '#1565c0';
       btn.style.color = '#1565c0';
     }
