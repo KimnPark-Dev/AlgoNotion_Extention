@@ -44,11 +44,31 @@ const PLATFORM_DIR = {
 };
 
 /**
- * BaekjoonHub 스타일 경로: 백준/Gold IV/1260. DFS와 BFS
+ * BaekjoonHub 폴더 규칙에 맞춘 레벨 변환.
+ * - baekjoon: 디테일 티어("Gold IV") → 메이저("Gold"). 첫 단어만 사용.
+ * - programmers: "Lv.2" / "Lv. 2" / "level2" → 숫자만("2").
+ * - swea: 그대로(D6, Unrated 등).
+ */
+function toFolderLevel(platform, level) {
+  const raw = (level || '').toString().trim();
+  if (!raw) return 'Unrated';
+
+  if (platform === 'baekjoon') {
+    return raw.split(/\s+/)[0];
+  }
+  if (platform === 'programmers') {
+    const m = raw.match(/\d+/);
+    return m ? m[0] : raw;
+  }
+  return raw;
+}
+
+/**
+ * BaekjoonHub 스타일 경로: 백준/Gold/1260. DFS와 BFS
  */
 function buildFolder(platform, level, problemId, title) {
   const platformDir = PLATFORM_DIR[platform] || platform;
-  const levelDir = sanitize(level || 'Unknown');
+  const levelDir = sanitize(toFolderLevel(platform, level));
   const safeTitle = sanitize(title || '');
   return `${platformDir}/${levelDir}/${problemId}. ${safeTitle}`;
 }
