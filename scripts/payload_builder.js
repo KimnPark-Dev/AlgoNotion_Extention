@@ -70,6 +70,34 @@ export function buildProgrammersWebhookPayload({
   };
 }
 
+export function buildLeetCodeWebhookPayload({
+  problemId,
+  title = '',
+  level = null,
+  language,
+  code,
+  time = null,
+  memory = null,
+}) {
+  const link = `https://leetcode.com/problems/${problemId}/`;
+
+  return {
+    platform: 'leetcode',
+    meta_info: {
+      title: title || problemId,
+      problem_id: String(problemId),
+      link,
+      level: level != null ? String(level) : null,
+      language,
+    },
+    submission_info: {
+      code,
+      memory: memory != null ? Number(memory) : null,
+      time: time != null ? Number(time) : null,
+    },
+  };
+}
+
 export function buildSweaWebhookPayload({
   problemId,
   contestProbId = '',

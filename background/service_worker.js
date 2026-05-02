@@ -1,7 +1,7 @@
 // Content script로부터 전달되는 메시지 수신 → solved.ac 보강 → /analyze 호출 → Notion/GitHub 저장
 import { fetchSolvedAcProblem, postToAnalyze } from '../scripts/api_client.js';
 import { normalizeLanguage } from '../scripts/language_normalizer.js';
-import { buildWebhookPayload, buildSweaWebhookPayload, buildProgrammersWebhookPayload } from '../scripts/payload_builder.js';
+import { buildWebhookPayload, buildSweaWebhookPayload, buildProgrammersWebhookPayload, buildLeetCodeWebhookPayload } from '../scripts/payload_builder.js';
 import { postToNotionPage } from '../scripts/notion_client.js';
 import { commitSolution } from '../scripts/github_client.js';
 
@@ -275,6 +275,59 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
             stage: 'background',
             error: err?.message || String(err),
           });
+        }
+      })();
+
+      return true;
+    }
+    case 'LEETCODE_AC_SUBMISSION': {
+      const payload = message.payload || {};
+
+      if (!payload.code) {
+        sendResponse({ ok: false, stage: 'validation', error: 'payload has no code' });
+        return false;
+      }
+
+      (async () => {
+        try {
+          const language = normalizeLanguage(payload.language);
+
+          const analyzePayload = buildLeetCodeWebhookPayload({
+            problemId: payload.problemId,
+            title: payload.title,
+            level: payload.level,
+            language,
+            code: payload.code,
+            time: payload.time,
+            memory: payload.memory,
+          });
+
+          const [notionSettings, githubSettings] = await Promise.all([
+            getNotionSettings(),
+            getGitHubSettings(),
+          ]);
+
+          await dispatchUpload({
+            analyzePayload,
+            notionSettings,
+            githubSettings,
+            rawSubmission: {
+              platform: 'leetcode',
+              problemId: payload.problemId,
+              title: payload.title,
+              level: payload.level,
+              language,
+              code: payload.code,
+              time: payload.time,
+              memory: payload.memory,
+            },
+          });
+
+          console.log('[AlgoNotion] LeetCode 업로드 완료:', payload.problemId);
+          sendResponse({ ok: true });
+        } catch (err) {
+          console.error('[AlgoNotion] LeetCode 업로드 실패:', err.message);
+          sendResponse({ ok: false, stage: 'background', error: err?.message || String(err) });
         }
       })();
 

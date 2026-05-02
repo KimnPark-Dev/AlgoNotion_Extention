@@ -28,6 +28,7 @@
     "https://solved.ac/*",
     "https://swexpertacademy.com/*",
     "https://school.programmers.co.kr/*",
+    "https://leetcode.com/*",
     "https://algonotion.site/*",
     "https://api.notion.com/*",
     "https://github.com/*",
@@ -78,6 +79,25 @@
     {
       "matches": [
         "https://school.programmers.co.kr/learn/*"
+      ],
+      "js": [
+        "content/programmers_monaco_bridge.js"
+      ],
+      "world": "MAIN",
+      "run_at": "document_idle"
+    },
+    {
+      "matches": [
+        "https://leetcode.com/problems/*"
+      ],
+      "js": [
+        "content/leetcode_content.js"
+      ],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": [
+        "https://leetcode.com/problems/*"
       ],
       "js": [
         "content/programmers_monaco_bridge.js"
