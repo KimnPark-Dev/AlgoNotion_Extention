@@ -205,6 +205,10 @@ function injectUploadButton(analysisBtn) {
 
 // ─── Result detection (MutationObserver) ─────────────────────────────────────
 
+let observer = null;
+let debounceTimer = null;
+let lastUrl = location.href;
+
 function tryInject() {
   const resultEl = document.querySelector('[data-e2e-locator="submission-result"]');
   if (!resultEl || resultEl.textContent.trim() !== 'Accepted') return;
@@ -212,15 +216,42 @@ function tryInject() {
   const analysisBtn = findButtonByText('Analysis');
   if (!analysisBtn) return;
 
+  if (analysisBtn.parentElement?.querySelector('.algonotion-lc-btn')) return;
+
+  // Disconnect before injecting: prevents React reconciliation conflicts
+  // caused by the observer firing during its own DOM insertion.
+  observer?.disconnect();
+  observer = null;
+
   injectUploadButton(analysisBtn);
+
+  // Resume watching for the next submission (SPA navigation or retry).
+  setTimeout(startObserving, 1000);
+}
+
+function onMutation() {
+  // SPA navigation: URL changed → reset state for the new page.
+  if (location.href !== lastUrl) {
+    lastUrl = location.href;
+    clearTimeout(debounceTimer);
+    return;
+  }
+  // Debounce: run tryInject only after mutations settle (300 ms).
+  clearTimeout(debounceTimer);
+  debounceTimer = setTimeout(tryInject, 300);
+}
+
+function startObserving() {
+  if (observer) return;
+  lastUrl = location.href;
+  observer = new MutationObserver(onMutation);
+  observer.observe(document.body, { childList: true, subtree: true });
 }
 
 async function init() {
   await loadUploadedIds();
   tryInject();
-
-  const observer = new MutationObserver(tryInject);
-  observer.observe(document.body, { childList: true, subtree: true });
+  startObserving();
 }
 
 init();
