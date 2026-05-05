@@ -66,7 +66,7 @@ async function dispatchUpload({ analyzePayload, notionSettings, githubSettings, 
         code: rawSubmission.code,
         time: rawSubmission.time,
         memory: rawSubmission.memory,
-        tags: rawSubmission.tags || [],
+        tags: rawSubmission.tags?.length ? rawSubmission.tags : (analysisResult?.tags || []),
         problemDetail: rawSubmission.problemDetail || null,
         analysis: analysisResult,
       }).then(
@@ -320,6 +320,7 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
               code: payload.code,
               time: payload.time,
               memory: payload.memory,
+              problemDetail: payload.problemDetail || null,
             },
           });
 

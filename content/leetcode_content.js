@@ -61,6 +61,11 @@ function getDifficulty() {
   return null;
 }
 
+function getProblemDetail() {
+  const description = document.querySelector('[data-track-load="description_content"]')?.innerText?.trim() || null;
+  return description ? { description, input: null, output: null } : null;
+}
+
 function getLanguage() {
   for (const btn of document.querySelectorAll('button[aria-haspopup="dialog"]')) {
     for (const node of btn.childNodes) {
@@ -146,7 +151,7 @@ function findButtonByText(text) {
 function injectUploadButton(analysisBtn) {
   const slug = getProblemSlug();
   if (!slug) return;
-  if (analysisBtn.parentElement?.querySelector('.algonotion-lc-btn')) return;
+  if (document.querySelector('.algonotion-lc-btn')) return;
 
   const solutionBtn = findButtonByText('Solution');
   const anchor = solutionBtn ?? analysisBtn;
@@ -184,6 +189,7 @@ function injectUploadButton(analysisBtn) {
           code,
           time: runtime,
           memory,
+          problemDetail: getProblemDetail(),
         },
       });
 
@@ -217,7 +223,7 @@ function tryInject() {
   const analysisBtn = findButtonByText('Analysis');
   if (!analysisBtn) return;
 
-  if (analysisBtn.parentElement?.querySelector('.algonotion-lc-btn')) return;
+  if (document.querySelector('.algonotion-lc-btn')) return;
 
   // Disconnect before injecting: prevents React reconciliation conflicts
   // caused by the observer firing during its own DOM insertion.
