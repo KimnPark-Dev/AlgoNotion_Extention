@@ -2,8 +2,8 @@
   "manifest_version": 3,
   "name": "AlgoNotion",
   "short_name": "AlgoNotion",
-  "description": "알고노션은 백준·SWEA·프로그래머스 정답 제출을 Notion 데이터베이스에 자동으로 저장합니다. Automatically sync your solved algorithm problems to Notion.",
-  "version": "2.6.0",
+  "description": "알고노션은 백준·SWEA·프로그래머스·LeetCode 정답 제출을 Notion 데이터베이스에 자동으로 저장합니다. Automatically sync your solved algorithm problems to Notion.",
+  "version": "2.7.0",
   "icons": {
     "16": "assets/icon16.png",
     "48": "assets/icon48.png",
@@ -28,6 +28,7 @@
     "https://solved.ac/*",
     "https://swexpertacademy.com/*",
     "https://school.programmers.co.kr/*",
+    "https://leetcode.com/*",
     "https://algonotion.site/*",
     "https://api.notion.com/*",
     "https://github.com/*",
@@ -78,6 +79,25 @@
     {
       "matches": [
         "https://school.programmers.co.kr/learn/*"
+      ],
+      "js": [
+        "content/programmers_monaco_bridge.js"
+      ],
+      "world": "MAIN",
+      "run_at": "document_idle"
+    },
+    {
+      "matches": [
+        "https://leetcode.com/problems/*"
+      ],
+      "js": [
+        "content/leetcode_content.js"
+      ],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": [
+        "https://leetcode.com/problems/*"
       ],
       "js": [
         "content/programmers_monaco_bridge.js"
