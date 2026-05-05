@@ -12,6 +12,11 @@ function levelToTierName(level) {
   return LEVEL_TIER_NAMES[level] || null;
 }
 
+function toInt(v) {
+  const n = Math.round(Number(v));
+  return isNaN(n) ? null : n;
+}
+
 export function buildWebhookPayload({
   platform = 'baekjoon',
   problemId,
@@ -36,8 +41,8 @@ export function buildWebhookPayload({
     },
     submission_info: {
       code,
-      memory: memory != null ? Number(memory) : null,
-      time: time != null ? Number(time) : null,
+      memory: toInt(memory),
+      time: toInt(time),
     },
   };
 }
@@ -64,8 +69,8 @@ export function buildProgrammersWebhookPayload({
     },
     submission_info: {
       code,
-      memory: memory != null ? Number(memory) : null,
-      time: time != null ? Number(time) : null,
+      memory: toInt(memory),
+      time: toInt(time),
     },
   };
 }
@@ -92,8 +97,8 @@ export function buildLeetCodeWebhookPayload({
     },
     submission_info: {
       code,
-      memory: memory != null ? Number(memory) : null,
-      time: time != null ? Number(time) : null,
+      memory: toInt(memory),
+      time: toInt(time),
     },
   };
 }
@@ -123,8 +128,8 @@ export function buildSweaWebhookPayload({
     },
     submission_info: {
       code,
-      memory: memory != null ? Number(memory) : null,
-      time: time != null ? Number(time) : null,
+      memory: toInt(memory),
+      time: toInt(time),
     },
   };
 }

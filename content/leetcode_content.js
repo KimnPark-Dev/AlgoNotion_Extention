@@ -62,21 +62,22 @@ function getDifficulty() {
 }
 
 function getLanguage() {
-  const btn = document.querySelector('button[aria-haspopup="dialog"]');
-  if (!btn) return '';
-  for (const node of btn.childNodes) {
-    if (node.nodeType === Node.TEXT_NODE && node.textContent.trim()) {
-      return node.textContent.trim();
+  for (const btn of document.querySelectorAll('button[aria-haspopup="dialog"]')) {
+    for (const node of btn.childNodes) {
+      if (node.nodeType === Node.TEXT_NODE && node.textContent.trim()) {
+        return node.textContent.trim();
+      }
     }
   }
   return '';
 }
 
 function getRuntimeMemory() {
+  // spans 순서: [runtime값, runtime%, memory값, memory%]
   const spans = document.querySelectorAll('span.text-lg.font-semibold.text-sd-foreground');
   return {
     runtime: spans[0]?.textContent?.trim() || null,
-    memory:  spans[1]?.textContent?.trim() || null,
+    memory:  spans[2]?.textContent?.trim() || null,
   };
 }
 
